@@ -32,8 +32,9 @@ Based on the data from the Posmo Project App from **xy students** we attempt to 
 ## Data
 - **xy students**
 - tracking period (**date from xy to xy**) 
-- travel modes (car, bicycle, foot, train, other....) 
-- .csv data set containts **xy trips** with the following attributes: 
+- travel modes available (car, bicycle, foot, train, other....) 
+
+The .csv data set contains **xy trips/ tracked locations** with the following attributes: 
 -   **user_id:** entails the ID of the user (student) (type: *character*)
 -   **datetime:** date and time when a position of a user/student is tracked (type: *datetime*) 
 -   **weekday:** abbreviated name of the weekday (e.g. Mon = Monday) (type: *character*)
