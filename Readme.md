@@ -7,8 +7,8 @@ Analysis Geo 880**
 |:---------------|:---------------------------------------- |
 | **Data:**      | What type of data are you focussing on?  |
 | **Title:**     | The title of your project                |
-| **Student 1:** | Name of Student 1                        |
-| **Student 2:** | Name of Student 2                        |
+| **Student 1:** | Mirjam Scheib                            |
+| **Student 2:** | Miriam Steinhauer                        |
 
 ## Abstract 
 <!-- (50-60 words) -->
