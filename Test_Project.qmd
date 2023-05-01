@@ -1,0 +1,29 @@
+# From best practice example html ------------------------------------------------------------------
+### Preliminaries ###
+pkgTest <- function(x)
+  {
+    if (!require(x,character.only = TRUE))
+    {
+      install.packages(x,dep=TRUE)
+        if(!require(x,character.only = TRUE)) stop("Package not found")
+    }
+}
+pkgTest("dplyr")
+pkgTest("lubridate")
+pkgTest("ggplot2")
+pkgTest("raster")
+pkgTest("sf")
+pkgTest("sp")
+pkgTest("leaflet")
+pkgTest("tidyverse")
+pkgTest("geosphere")
+pkgTest("rgeos")
+pkgTest("spatstat")
+pkgTest("maptools")
+
+WGS84 <- "+init=epsg:4326"
+NAD83 <- "+init=epsg:6423"
+
+knitr::opts_chunk$set(echo = TRUE)
+options(warning=FALSE)    # Don't show warnings
+par(mfrow=c(1,1))         # Reset plot placement to normal 1 by 1
