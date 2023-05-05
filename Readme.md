@@ -10,10 +10,10 @@ Analysis Geo 880**
 | **Student 1:** | Mirjam Scheib                            |
 | **Student 2:** | Miriam Steinhauer                        |
 
-## Abstract 
+## Abstract (Miri)
 <!-- (50-60 words) -->
 
-## Research Questions
+## Research Questions (Mirj)
 Based on the data from the Posmo Project App from **xy students** we attempt to answer the following research questions: 
 
 - What type of travel mode is the most common?  
@@ -26,10 +26,10 @@ Based on the data from the Posmo Project App from **xy students** we attempt to 
 
 <!-- (50-60 words) -->
 
-## Results / products
+## Results / products (Mirj)
 <!-- What do you expect, anticipate? -->
 
-## Data
+## Data (Mirj)
 - **xy students**
 - tracking period (**date from xy to xy**) 
 - travel modes available (car, bicycle, foot, train, other....) 
@@ -43,14 +43,14 @@ The .csv data set contains **xy trips/ tracked locations** with the following at
 -   **lon_x/lat_y:** coordinates of the user at a specific time (type: *numeric*)
 <!-- What data will you use? Will you require additional context data? Where do you get this data from? Do you already have all the data? -->
 
-## Analytical concepts
+## Analytical concepts (Miri)
 <!-- Which analytical concepts will you use? What conceptual movement spaces and respective modelling approaches of trajectories will you be using? What additional spatial analysis methods will you be using? -->
 
-## R concepts
+## R concepts (Mirj)
 <!-- Which R concepts, functions, packages will you mainly use. What additional spatial analysis methods will you be using? -->
 
-## Risk analysis
+## Risk analysis (Mirj)
 <!-- What could be the biggest challenges/problems you might face? What is your plan B? -->
 
-## Questions? 
+## Questions? (Mirj + Miri)
 <!-- Which questions would you like to discuss at the coaching session? -->
