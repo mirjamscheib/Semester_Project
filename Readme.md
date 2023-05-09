@@ -5,8 +5,7 @@ Analysis Geo 880**
 
 | Semester:      | FS23                                     |
 |:---------------|:---------------------------------------- |
-| **Data:**      | What type of data are you focussing on?
-|                  Trajectory data, weather data
+| **Data:**      | Trajectory data, weather data            | 
 | **Title:**     | The title of your project                |
 | **Student 1:** | Mirjam Scheib                            |
 | **Student 2:** | Miriam Steinhauer                        |
