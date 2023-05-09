@@ -6,7 +6,7 @@ Analysis Geo 880**
 | Semester:      | FS23                                     |
 |:---------------|:---------------------------------------- |
 | **Data:**      | Trajectory data, weather data            | 
-| **Title:**     | The title of your project                |
+| **Title:**     | Effects of ... on average travelling distances of students                |
 | **Student 1:** | Mirjam Scheib                            |
 | **Student 2:** | Miriam Steinhauer                        |
 
