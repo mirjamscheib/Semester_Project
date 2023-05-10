@@ -60,6 +60,17 @@ Our movement data is tracked in a continuous movement space (the whole earth sur
 
 Based on our research questions we are mainly interested in the average travelling distances of the students. Therefore our semantic level of interest concerns only the added up segments. 
 
+{What additional spatial analysis methods will you be using?....
+
+Data issues in environmental data analysis
+1. Measurement error 
+2. Outliers -> can be visually excluded (relevant for our study question)
+3. Artifacts -> can be excluded by processing with segments (relevant for our study questsion)
+4. Choosing a method
+Problem: low precision, not so much a problem: low accuracy
+Scale and granularity? -> set with the sampling frequency, it might be even too fine scale for our research question
+-> Sampling means choosing a scale}
+
 
 
 ## R concepts (Mirj)
@@ -131,6 +142,8 @@ Combining trajectory data with weather data requires merging the two datasets ba
 
 ## - Risk analysis (Mirj)
 The biggest challenges/problems probably occur with obtaining, handling and analysing the weather data. If not sufficient weather data is available (meaning not every movement space of all students can be covered), it would be possible to filter our data so that only trajectories within sufficient weather data coverage will be analysed. 
+
+From analytical point of view, outliers and artifacts could skew data drastically if removal is unsuccessful. Furthermore, the sampling frequency is very fine scale for our chosen research questions, if granularity is too high, short forward movements could be detected as stationary leading to an underestimation of the total trajectory distance. 
 
 <!-- What could be the biggest challenges/problems you might face? What is your plan B? -->
 
