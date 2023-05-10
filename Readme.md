@@ -56,6 +56,10 @@ Data from weather stations still have to be obtained, as it remains challenging 
 ## Analytical concepts (Miri)
 <!-- Which analytical concepts will you use? What conceptual movement spaces and respective modelling approaches of trajectories will you be using? What additional spatial analysis methods will you be using? -->
 
+Our movement data is tracked in a continuous movement space (the whole earth surface) and the best suitable conceptual model is probably a network space combined with an entity based model. Our data structure is vector based so that we can obtain movement trajectories in a two dimensional space that can be constrained by objects (e.g. houses) and momevement corridors like streets and train tracks. The movement takes place in an intermittent manner and can be active (by foot) or passive (by train, boat). As all students have been tracked actively and in real-time by the posmo app (continuously every 5s, 10s, or 15s) or by a GPS tracker, the perspective is Lagranian. 
+
+
+
 ## R concepts (Mirj)
 The following R concepts, functions and packages we expect to mainly use in this project work: 
 
