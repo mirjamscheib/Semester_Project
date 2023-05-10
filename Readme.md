@@ -78,5 +78,5 @@ The biggest challenges/problems probably occur with obtaining, handling and anal
 
 ## Questions? (Mirj + Miri)
 - How, where can we access weather data which meets the needs of our analysis? 
-- ...
+- How to handle/communicate the inherent uncertainty of the Posmo Data (since we know that the App doesn't track activity data right every time)?
 <!-- Which questions would you like to discuss at the coaching session? -->
