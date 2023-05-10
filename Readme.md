@@ -13,7 +13,7 @@ Analysis Geo 880**
 ## Abstract (Miri)
 <!-- (50-60 words) -->
 
-## Research Questions (Mirj)
+## - Research Questions (Mirj)
 Based on trajectory data from 20 students using the Posmo Project App we attempt to answer the following research questions: 
 
 - Does average travelling distance per day differ between students of different universities (ZHAW or UZH) and/or on weekends compared to workdays? 
@@ -21,8 +21,8 @@ Based on trajectory data from 20 students using the Posmo Project App we attempt
 
 <!-- (50-60 words) -->
 
-## Results / products (Mirj)
-We expect that average travelling distance between students of different universities differ, as ZHAW Wädenswil is located more remote, and the average student probably has to travel a greater distance to come to the campus compared to UZH, which is located relatively central in the city of Zurich. Additionally, Zurich is considered the biggest student city in Switzerland, with around 45'000 students (https://www.einstieg.com/studium/studium-im-ausland/studieren-in-der-schweiz.html). Therefore we expect that students of UZH will have a lower average travelling distance per day as students of ZHAW. 
+## - Results / products (Mirj)
+We expect that average travelling distance between students of different universities differ, as ZHAW Wädenswil is located more remote, and the average student probably has to travel a greater distance to come to the campus compared to UZH, which is located relatively central in the city of Zurich. Additionally, Zurich is considered the biggest student city in Switzerland, with around 45'000 students (https://www.einstieg.com/studium/studium-im-ausland/studieren-in-der-schweiz.html). Therefore we expect that students of UZH will have a lower average travelling distance per day as students of ZHAW, as we assume that many students of UZH life in close proximity of the university or the city of Zurich in general. 
 
 We expect that average travelling distance per day differs when comparing the weekends to workdays, as commuting is a major part of workdays which probably adds up to travelling distance. Hence, we expect to find a higher average travelling distance on workdays than on weekends. 
 
@@ -33,21 +33,21 @@ We expect that the weather condition has an impact on the average travel distanc
 ## Data (Mirj)
 **What data will you use?**
 
-Primary data to answer the research questions is the trajectory data from 20 students, which covers a timeframe of one to two months (ca. 01.04.23 until 31.05.23). The data was collected using the Posmo App, which only tracks **activity data** and differentiates between several travel modes **(car, bicycle, foot, train, other....)**. Trajectory data from the App can be downloaded as a .csv-file containing the following attributes: 
+Primary data to answer the research questions is the trajectory data from 20 students, which covers a timeframe of one to two months (ca. 01.04.23 until 31.05.23). The data was collected using the Posmo App, which only tracks activity events and differentiates between several travel modes (e.g. car, bicycle, foot, train, other....). Trajectory data from the App can be downloaded as a .csv-file containing the following attributes: 
 -   **user_id:** entails the individual ID of the user (= student) (type: *character*)
 -   **datetime:** date and time when a position of a user is tracked (type: *datetime*) 
 -   **weekday:** abbreviated name of the weekday (e.g. Mon = Monday) (type: *character*)
 -   **place_name:** names of a place, in which a user is at a specific time (type: *character*)
--   **transport_mode:** the type of transport used by a user **(e.g. car, bicycle, foot, train, other....)** (type: *character*)
+-   **transport_mode:** the type of transport used by a user (e.g. car, bicycle, foot, train, other....) (type: *character*)
 -   **lon_x/lat_y:** coordinates of the user at a specific time (type: *numeric*)
 
 **Will you require additional context data?**
 
-Additional context data needed to answer the research questions is the type of university, in which the participating students are enrolled, which is either ZHAW or UZH. Additionally, to answer the second question, weather data from weather stations are required. 
+Additional context data needed to answer the research questions is the type of university, in which the participating students are enrolled, which is either ZHAW or UZH (type: *character* or *factor*). Additionally, to answer the second question, weather data from weather stations are required, containing information from which a clustering of different weather modes can be obtained (e.g. rain, sunshine, wind). 
 
 **Where do you get this data from?** 
 
-The data containing the type of university of every student is available on moodle. Weather data from weather stations can be accessed through ....
+The data containing the type of university of every student can be obtained from the information in the moodle course. Weather data from weather stations can be accessed through the internet on different data bases. 
 
 **Do you already have all the data?**
 
@@ -63,6 +63,7 @@ The following R concepts, functions and packages we expect to mainly use in this
 
 **Functions and packages:**
 - ggplot2 - for creating visualizations
+-   ggplot() - with different functions combined
 - dplyr - for data wrangling and filtering
 - lubridate - for working with dates and times
 - tmap - for creating interactive maps
@@ -71,8 +72,8 @@ The following R concepts, functions and packages we expect to mainly use in this
 
 <!-- Which R concepts, functions, packages will you mainly use. What additional spatial analysis methods will you be using? -->
 
-## Risk analysis (Mirj)
-The biggest challenges/problems probably occur with obtaining, handling and analysing the weather data. 
+## - Risk analysis (Mirj)
+The biggest challenges/problems probably occur with obtaining, handling and analysing the weather data. If not sufficient weather data is available (meaning not every movement space of all students can be covered), it would be possible to filter our data so that only trajectories within sufficient weather data coverage will be analysed. 
 
 <!-- What could be the biggest challenges/problems you might face? What is your plan B? -->
 
