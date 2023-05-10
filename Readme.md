@@ -62,12 +62,20 @@ The following R concepts, functions and packages we expect to mainly use in this
 **R concepts:**
 
 **Functions and packages:**
-- ggplot2 - for creating visualizations
--   ggplot() - with different functions combined
-- dplyr - for data wrangling and filtering
-- lubridate - for working with dates and times
-- tmap - for creating interactive maps
-- sp - for spatial data analysis
+- **ggplot2** - for creating visualizations
+-   ggplot() + - with several geom_functions combined (e.g. geom_path(), geom_point() etc.)
+- **dplyr** - for data wrangling and filtering
+-   group_by() - to group data (e.g. according to university, travel mode, weekday or weekend etc.)
+-   summarise() - 
+- **lubridate** - for working with dates and times
+- **tmap** - for creating interactive maps
+-   tmshape() + shape argument - to create interactive maps 
+- **sp** - for spatial data analysis
+- **sf** - for spatial data analysis
+-   st_as_sf() - to convert data.frame into spatial object 
+-   st_transform() - to transform coordinate systems 
+- **readr** - to import tabular data (e.g. .csv)
+-   read_delim() - to import tabular data
 
 
 <!-- Which R concepts, functions, packages will you mainly use. What additional spatial analysis methods will you be using? -->
