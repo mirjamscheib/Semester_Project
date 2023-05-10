@@ -143,7 +143,7 @@ Combining trajectory data with weather data requires merging the two datasets ba
 ## - Risk analysis (Mirj)
 The biggest challenges/problems probably occur with obtaining, handling and analysing the weather data. If not sufficient weather data is available (meaning not every movement space of all students can be covered), it would be possible to filter our data so that only trajectories within sufficient weather data coverage will be analysed. 
 
-From analytical point of view, outliers and artifacts could skew data drastically if removal is unsuccessful. Furthermore, the sampling frequency is very fine scale for our chosen research questions, if granularity is too high, short forward movements could be detected as stationary leading to an underestimation of the total trajectory distance. 
+From an analytical point of view, outliers and artifacts could skew data drastically if removal is unsuccessful. Furthermore, the sampling frequency is very fine scale for our chosen research questions, if granularity is too high, short forward movements could be detected as stationary, leading to an underestimation of the total trajectory distance. 
 
 <!-- What could be the biggest challenges/problems you might face? What is your plan B? -->
 
