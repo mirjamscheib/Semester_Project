@@ -63,7 +63,7 @@ The following R concepts, functions and packages we expect to mainly use in this
 
 **Functions and packages:**
 - **ggplot2** - for creating visualizations
--   ggplot() + - with several geom_functions combined (e.g. geom_path(), geom_point() etc.)
+  - ggplot() + - with several geom_functions combined (e.g. geom_path(), geom_point() etc.)
 - **dplyr** - for data wrangling and filtering
 -   group_by() - to group data (e.g. according to university, travel mode, weekday or weekend etc.)
 -   summarise() - 
