@@ -59,34 +59,63 @@ Data from weather stations still have to be obtained, as it remains challenging 
 ## R concepts (Mirj)
 The following R concepts, functions and packages we expect to mainly use in this project work: 
 
-**R concepts:**
-- Spatial data handling 
-- Data manipulation and transformation 
-- Visualization 
-- Spatial analysis 
-- Time series analysis
-- **Data merging** - to combine trajectory data with weather data 
+**Spatial data handling**
+Trajectory data contains spatial information (coordinates). Additionally, weather data may be available as raster data, which requires special handling in R. 
+
+*Packages and functions:*
+- **sp** - for spatial data analysis
+- **sf** - for spatial data analysis
+  -   st_as_sf() - to convert data.frame into spatial object 
+  -   st_transform() - to transform coordinate systems 
+- **raster** - 
+
+**Data manipulation and transformation**
+Our data most probably needs to be manipulated and transformed in various ways. 
+
+*Packages and functions:*
+- **dplyr** - for data wrangling and filtering
+  -   group_by() - to group data (e.g. according to university, travel mode, weekday or weekend etc.)
+  -   summarise() - 
+  -   filter() - to filter data 
+-  **tidyr** 
+-  **lubridate** - for working with dates and times
+-  **readr** - to import tabular data (e.g. .csv)
+  -   read_delim() - to import tabular data
+  
+**Visualization**
+
+Visualization allows to explore patterns and trends in the data. 
+
+*Packages and functions:*
+
+- **tmap** - for creating interactive maps
+  -   tmshape() + shape argument - to create interactive maps 
+- **ggplot2** - for creating visualizations
+  - ggplot() + - with several geom_functions combined (e.g. geom_path(), geom_point() etc.)
+
+
+**Spatial analysis**
+
+Trajectory data can be analyzed using various spatial analysis techniques (e.g. clustering)
+
+*Packages and functions:*
+
+- The spatstat, trip, and gdistance packages are commonly used for spatial analysis in R.
+
+**Time series analysis**
+
+Both trajectory data and weather data are often collected over time, and require time series analysis techniques to understand temporal patterns and trends. The zoo, xts, and forecast packages are commonly used for time series analysis in R.
+
+**Data merging** 
+
+Combining trajectory data with weather data requires merging the two datasets based on a common variable such as time or location. The dplyr and tidyr packages are commonly used for merging datasets in R.
+
+- to combine trajectory data with weather data 
   - requires merging the two datasets based on a common variable such as time or location
   - Packages and functions:
     - **dplyr** - for data wrangling and filtering
       -   group_by() - to group data (e.g. according to university, travel mode, weekday or weekend etc.)
       -   summarise() - 
-
-**Functions and packages:**
-- **ggplot2** - for creating visualizations
-  - ggplot() + - with several geom_functions combined (e.g. geom_path(), geom_point() etc.)
-- **dplyr** - for data wrangling and filtering
-  -   group_by() - to group data (e.g. according to university, travel mode, weekday or weekend etc.)
-  -   summarise() - 
-- **lubridate** - for working with dates and times
-- **tmap** - for creating interactive maps
-  -   tmshape() + shape argument - to create interactive maps 
-- **sp** - for spatial data analysis
-- **sf** - for spatial data analysis
-  -   st_as_sf() - to convert data.frame into spatial object 
-  -   st_transform() - to transform coordinate systems 
-- **readr** - to import tabular data (e.g. .csv)
-  -   read_delim() - to import tabular data
 
 
 <!-- Which R concepts, functions, packages will you mainly use. What additional spatial analysis methods will you be using? -->
