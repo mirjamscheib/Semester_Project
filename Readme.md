@@ -59,7 +59,7 @@ Data from weather stations still have to be obtained, as it remains challenging 
 ## R concepts (Mirj)
 The following R concepts, functions and packages we expect to mainly use in this project work: 
 
-**Spatial data handling**:
+**1. Spatial data handling**:
 Trajectory data contains spatial information (coordinates). Additionally, weather data may be available as raster data, which requires special handling in R. 
 
 *Packages and functions:*
@@ -69,7 +69,7 @@ Trajectory data contains spatial information (coordinates). Additionally, weathe
   -   st_transform() - to transform coordinate systems 
 - **terra** - to handle raster data 
 
-**Data manipulation and transformation**:
+**2. Data manipulation and transformation**:
 Our data most probably needs to be manipulated and transformed in various ways. 
 
 *Packages and functions:*
@@ -84,7 +84,7 @@ Our data most probably needs to be manipulated and transformed in various ways.
 -  **readr** - to import tabular data (e.g. .csv)
   -   read_delim() - to import tabular data
   
-**Visualization**:
+**3. Visualization**:
 Visualization allows to explore patterns and trends in the data. 
 
 *Packages and functions:*
@@ -95,21 +95,21 @@ Visualization allows to explore patterns and trends in the data.
   - ggplot() + - with several geom_functions combined (e.g. geom_path(), geom_point() etc.)
 
 
-**Spatial analysis**:
+**4. Spatial analysis**:
 Trajectory data can be analyzed using various spatial analysis techniques (e.g. clustering).
 
 *Packages and functions:*
 
 - The spatstat, trip, and gdistance packages are commonly used for spatial analysis in R.
 
-**Time series analysis**:
+**5. Time series analysis**:
 Both trajectory data and weather data are collected over time, and require time series analysis techniques to understand temporal patterns and trends.
 
 *Packages and functions:*
 
 - The zoo, xts, and forecast packages are commonly used for time series analysis in R.
 
-**Data merging**:
+**6. Data merging**:
 Combining trajectory data with weather data requires merging the two datasets based on a common variable (e.g. time, location).
 
 *Packages and functions:*
