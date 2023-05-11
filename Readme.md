@@ -6,7 +6,7 @@ Analysis Geo 880**
 | Semester:      | FS23                                     |
 |:---------------|:---------------------------------------- |
 | **Data:**      | Trajectory data, weather data            | 
-| **Title:**     | Effects of different factors on average travelling distances of students                |
+| **Title:**     | Effects of different environmental factors on average travelling distances of students                |
 | **Student 1:** | Mirjam Scheib                            |
 | **Student 2:** | Miriam Steinhauer                        |
 
