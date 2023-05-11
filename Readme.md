@@ -17,7 +17,7 @@ Analysis Geo 880**
 Based on trajectory data from 20 students using the Posmo Project App we attempt to answer the following research questions: 
 
 - Does average travelling distance per day differ between students of different universities (ZHAW or UZH) and/or on weekends compared to workdays? 
-- Does the weather condition (e.g. rain, sunshine) impact average travel distance of students by foot and/or bicycle?  
+- Does the weather condition (e.g. rain, sunshine) impact average travel distance of students by foot and/or bicycle?  - impact on spatio-temporal pattern? 
 
 <!-- (50-60 words) -->
 
