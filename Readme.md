@@ -82,6 +82,7 @@ Trajectory data contains spatial information (coordinates). Additionally, weathe
   -   st_as_sf() - to convert data.frame into spatial object 
   -   st_transform() - to transform coordinate systems 
 - **terra** - to handle raster data 
+  -  rast() - to read rasters
 
 **2. Data manipulation and transformation**:
 Our data most probably needs to be manipulated and transformed in various ways. 
@@ -94,7 +95,6 @@ Our data most probably needs to be manipulated and transformed in various ways.
   -   filter() - to filter data 
   -   mutate() - to calculate variables from existing variables and/or to create additional variables
 -  **tidyr** 
--  **lubridate** - for working with dates and times
 -  **readr** - to import tabular data (e.g. .csv)
   -   read_delim() - to import tabular data
   
@@ -137,10 +137,12 @@ Combining trajectory data with weather data requires merging the two datasets ba
 
 <!-- Which R concepts, functions, packages will you mainly use. What additional spatial analysis methods will you be using? -->
 
-## - Risk analysis (Mirj)
+## Risk analysis (Mirj)
 The biggest challenges/problems probably occur with obtaining, handling and analysing the weather data. If not sufficient weather data is available (meaning not every movement space of all students can be covered), it would be possible to filter our data so that only trajectories within sufficient weather data coverage will be analysed. 
 
 From an analytical point of view, outliers and artifacts could skew data drastically if removal is unsuccessful. Furthermore, the sampling frequency is very fine scale for our chosen research questions, if granularity is too high, short forward movements could be detected as stationary, leading to an underestimation of the total trajectory distance. 
+
+Additionally it was brought to our attention, that tracking accuracy of the Posmo App is not always right, as travel modes can be misinterpreted (e.g., instead of tracking a trajectory made by bicycle Posmo tracks a trajectory made with a car). Furthermode it can be that movement data is either tracked where no movement took place or movement data is not being tracked where movement took place. It would  be probably very complicated to filter out these errors, as we don't have additional data covering real movement of all students to correct the Posmo App data. Therefore, our procedure would be to use the trajectory data as it is and discuss these limitations and problems of the App in the discussion of our project work. 
 
 <!-- What could be the biggest challenges/problems you might face? What is your plan B? -->
 
