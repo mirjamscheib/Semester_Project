@@ -58,7 +58,14 @@ Data from weather stations still have to be obtained, as it remains challenging 
 
 Our movement data is tracked in a continuous movement space (the whole earth surface) and the best suitable conceptual model is probably a network space combined with an entity based model. Our data structure is vector based so that we can obtain trajectories in a two dimensional space where movement can be constrained by objects (e.g. houses) and momevement corridors like streets and train tracks. The movement takes place in an intermittent manner and can be active (by foot) or passive (by train, boat). As all students have been tracked actively and in real-time by the posmo app (every 5s, 10s, or 15s) or by a GPS tracker, the perspective is Lagranian with a continuous sampling regime. 
 
-Based on our research questions we are mainly interested in the average travelling distances of the students. Therefore our semantic level of interest concerns only the added up segments. 
+Based on our research questions we are mainly interested in the average travelling distances of the students. Therefore our semantic level of interest concerns only segments. As a first step, the raw data has to be inspected and preprocessed. We will start with getting an overview of our data by visualizing it in different ways and thereby also detect possible measurement errors, gaps and outliers that can be excluded as a next step. A map matching will help to detect low GPS accuracy or precision, where for this study the ladder is more relevant and could have a high impact on our results. (.. Operations derive movement parameters (attribute-operations with entities or map algebra with fields -> anything of this needed?) 
+We might also calculate the sinuosity [s] as the chance of underestimating average travelling distance gets higher, the more fine scale our data is in combination with a high sinuousity. The sinuosity measure in addition to a cross-scale movement analysis will help finding the suitable scale and granularity to calculate travelling distances. 
+
+Once the preprocessing is done, we can proceed to computing our trajectory segments. 
+
+Proximity
+
+Weather
 
 {What additional spatial analysis methods will you be using?....
 
@@ -69,7 +76,29 @@ Data issues in environmental data analysis
 4. Choosing a method
 Problem: low precision, not so much a problem: low accuracy
 Scale and granularity? -> set with the sampling frequency, it might be even too fine scale for our research question
--> Sampling means choosing a scale}
+-> Sampling means choosing a scale
+
+Preprocessing:
+- Map-matching
+- Operations derive movement parameters (attribute-operations with entities or map algebra with fields) 
+- Important movement parameters in CMA: Speed, acceleration, azimuth, sinuosity
+
+Cross-scale movement analysis
+Rolling window functions
+Concept of proximity, define proximity
+
+Segmentation:
+Step a): Specify a temporal window v
+Step b): Measure the distance from every point to every other point within this temporal window
+Step c): Remove “static points"
+
+Specify and apply threshold -> define a reasonable threshold value to differentiate between stops and moves
+
+Segment-based analysis:
+- colour segments by segment ID
+- Similarity measures
+}
+
 
 
 
