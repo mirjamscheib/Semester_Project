@@ -95,7 +95,7 @@ Our data most probably needs to be manipulated and transformed in various ways.
 -  **tidyr** 
 
 -  **readr** - to import tabular data (e.g. .csv)
-  -  read_delim() - to import tabular data
+  -   read_delim() - to import tabular data
   
 **3. Visualization**:
 Visualization allows to explore patterns and trends in the data. 
