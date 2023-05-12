@@ -10,11 +10,11 @@ Analysis Geo 880**
 | **Student 1:** | Mirjam Scheib                            |
 | **Student 2:** | Miriam Steinhauer                        |
 
-## Abstract (Miri)
+## Abstract 
 <!-- (50-60 words) -->
 For every living being, movement is coupled with an individual energy cost. Throughout anthropogenic development, this energy cost could be reduced more and more by increasing movement efficiency. Today, in the face of climate change, movement efficiency is still a topical issue. To reduce energy cost of movement and increase its efficiency, it applies to reduce the travelling distance between two points to an absolute minimum. In this study, we will therefore address movement efficiency by investigating the effects of environmental factors (e.g., weather condition, influence of holiday, university affiliation) on average travelling distance of students, with the aim to reveal factors that prevent students from minimizing their movement costs. 
 
-## Research Questions (Mirj)
+## Research Questions 
 Based on trajectory data from 20 students using the Posmo Project App we attempt to answer the following research questions: 
 
 - Does average travelling distance per day differ between students of different universities (ZHAW or UZH) and/or on weekends compared to workdays? 
@@ -22,7 +22,7 @@ Based on trajectory data from 20 students using the Posmo Project App we attempt
 
 <!-- (50-60 words) -->
 
-## Results / products (Mirj)
+## Results / products 
 We expect that average travelling distance between students of different universities differ, as ZHAW Wädenswil is located more remote, and the average student probably has to travel a greater distance to come to the campus compared to UZH, which is located relatively central in the city of Zurich. Additionally, Zurich is considered the biggest student city in Switzerland, with around 45'000 students (https://www.einstieg.com/studium/studium-im-ausland/studieren-in-der-schweiz.html). Therefore we expect that students of UZH will have a lower average travelling distance per day as students of ZHAW, as we assume that many students of UZH life in close proximity of the university or the city of Zurich in general. 
 
 We expect that average travelling distance per day differs when comparing the weekends to workdays, as commuting is a major part of workdays which probably adds up to travelling distance. Hence, we expect to find a higher average travelling distance on workdays than on weekends. 
@@ -31,7 +31,7 @@ We expect that the weather condition has an impact on the average travel distanc
 
 <!-- What do you expect, anticipate? -->
 
-## Data (Mirj)
+## Data 
 **What data will you use?**
 
 Primary data to answer the research questions is the trajectory data from 20 students, which covers a timeframe of one to two months (ca. 01.04.23 until 31.05.23). The data was collected using the Posmo App, which only tracks activity events and differentiates between several travel modes (e.g. car, bicycle, foot, train, other....). Trajectory data from the App can be downloaded as a .csv-file containing the following attributes: 
@@ -70,7 +70,7 @@ As a last step, the length of all segments of a trajectory needs to be added up 
 {- Operations derive movement parameters (attribute-operations with entities or map algebra with fields) 
 - Rolling window functions}
 
-## R concepts (Mirj)
+## R concepts 
 The following R concepts, functions and packages we expect to mainly use in this project work: 
 
 **1. Spatial data handling**:
@@ -137,7 +137,7 @@ Combining trajectory data with weather data requires merging the two datasets ba
 
 <!-- Which R concepts, functions, packages will you mainly use. What additional spatial analysis methods will you be using? -->
 
-## Risk analysis (Mirj)
+## Risk analysis 
 The biggest challenges/problems probably occur with obtaining, handling and analysing the weather data. If not sufficient weather data is available (meaning not every movement space of all students can be covered), it would be possible to filter our data so that only trajectories within sufficient weather data coverage will be analysed. 
 
 From an analytical point of view, outliers and artifacts could skew data drastically if removal is unsuccessful. Furthermore, the sampling frequency is very fine scale for our chosen research questions, if granularity is too high, short forward movements could be detected as stationary, leading to an underestimation of the total trajectory distance. 
@@ -146,7 +146,7 @@ Additionally it was brought to our attention, that tracking accuracy of the Posm
 
 <!-- What could be the biggest challenges/problems you might face? What is your plan B? -->
 
-## Questions? (Mirj + Miri)
+## Questions? 
 - How, where can we access weather data which meets the needs of our analysis? 
 - How to handle/communicate the inherent uncertainty of the Posmo Data (since we know that the App doesn't track activity data right every time)?
 <!-- Which questions would you like to discuss at the coaching session? -->
