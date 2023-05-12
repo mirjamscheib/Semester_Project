@@ -17,17 +17,18 @@ In this study, we will address movement efficiency by investigating the effects 
 ## Research Questions 
 Based on trajectory data from 20 students using the Posmo Project App we attempt to answer the following research questions: 
 
-- Does average travelling distance per day differ between students of different universities (ZHAW or UZH) and/or on weekends compared to workdays? 
-- Does the weather condition (e.g. rain, sunshine) impact average travel distance of students by foot and/or bicycle?  - impact on spatio-temporal pattern? 
+- Do students of different universities (ZHAW or UZH) show different spatio-temporal movement patterns?
+- Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns? 
+- Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?  
 
 <!-- (50-60 words) -->
 
 ## Results / products 
-We expect that average travelling distance between students of different universities differ, as ZHAW Wädenswil is located more remote, and the average student probably has to travel a greater distance to come to the campus compared to UZH, which is located relatively central in the city of Zurich. Additionally, Zurich is considered the biggest student city in Switzerland, with around 45'000 students (https://www.einstieg.com/studium/studium-im-ausland/studieren-in-der-schweiz.html). Therefore we expect that students of UZH will have a lower average travelling distance per day as students of ZHAW, as we assume that many students of UZH life in close proximity of the university or the city of Zurich in general. 
+We expect that spatio-temporal movement patterns between students of different universities differ, as ZHAW Wädenswil is located more remote, and the average student probably has to travel a greater distance to come to the campus compared to UZH, which is located relatively central in the city of Zurich. Additionally, Zurich is considered the biggest student city in Switzerland, with around 45'000 students (https://www.einstieg.com/studium/studium-im-ausland/studieren-in-der-schweiz.html). Therefore we expect that students of UZH will have a lower average travelling distance per day as students of ZHAW, as we assume that many students of UZH life in close proximity of the university or the city of Zurich in general. 
 
-We expect that average travelling distance per day differs when comparing the weekends to workdays, as commuting is a major part of workdays which probably adds up to travelling distance. Hence, we expect to find a higher average travelling distance on workdays than on weekends. 
+We expect that spatio-temporal movement patterns differs when comparing the weekends to workdays, as commuting is a major part of workdays which probably adds up to travelling distance. Hence, we expect to find a higher average travelling distance on workdays than on weekends. 
 
-We expect that the weather condition has an impact on the average travel distance by foot and/or bicycle of students. On rainy days average travel distance by foot and/or bicycle will be lower than on days with sunshine. Additionally, we expect to find a lower average travel distance over all travel modes on rainy days, compared to sunny days. 
+We expect that the weather condition has an impact on spatio-temporal movement patterns by foot and/or bicycle of students. On rainy days average travel distance by foot and/or bicycle will be lower than on days with sunshine. Additionally, we expect to find a lower average travel distance over all travel modes on rainy days, compared to sunny days. 
 
 <!-- What do you expect, anticipate? -->
 
