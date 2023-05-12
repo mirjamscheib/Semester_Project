@@ -12,7 +12,7 @@ Analysis Geo 880**
 
 ## Abstract 
 <!-- (50-60 words) -->
-For every living being, movement is coupled with an individual energy cost. Throughout anthropogenic development, this energy cost could be reduced more and more by increasing movement efficiency. Today, in the face of climate change, movement efficiency is still a topical issue. To reduce energy cost of movement and increase its efficiency, it applies to reduce the travelling distance between two points to an absolute minimum. In this study, we will therefore address movement efficiency by investigating the effects of environmental factors (e.g., weather condition, influence of holiday, university affiliation) on average travelling distance of students, with the aim to reveal factors that prevent students from minimizing their movement costs. 
+In this study, we will address movement efficiency by investigating the effects of environmental factors (e.g., weather condition, influence of weekday, university affiliation) on average travelling distance of students, with the aim to reveal spatial and temporal patterns. 
 
 ## Research Questions 
 Based on trajectory data from 20 students using the Posmo Project App we attempt to answer the following research questions: 
