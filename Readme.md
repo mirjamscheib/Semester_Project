@@ -94,7 +94,7 @@ Our data most probably needs to be manipulated and transformed in various ways.
   -   mutate() - to calculate variables from existing variables and/or to create additional variables
 -  **tidyr** 
 -  **readr** - to import tabular data (e.g. .csv)
-  -   read_delim() - to import tabular data
+  -  read_delim() - to import tabular data
   
 **3. Visualization**:
 Visualization allows to explore patterns and trends in the data. 
@@ -140,7 +140,7 @@ The biggest challenges/problems probably occur with obtaining, handling and anal
 
 From an analytical point of view, outliers and artifacts could skew data drastically if removal is unsuccessful. Furthermore, the sampling frequency is very fine scale for our chosen research questions, if granularity is too high, short forward movements could be detected as stationary, leading to an underestimation of the total trajectory distance. 
 
-Additionally it was brought to our attention, that tracking accuracy of the Posmo App is not always right, as travel modes can be misinterpreted (e.g., instead of tracking a trajectory made by bicycle Posmo tracks a trajectory made with a car). Furthermode it can be that movement data is either tracked where no movement took place or movement data is not being tracked where movement took place. It would  be probably very complicated to filter out these errors, as we don't have additional data covering real movement of all students to correct the Posmo App data. Therefore, our procedure would be to use the trajectory data as it is and discuss these limitations and problems of the App in the discussion of our project work. 
+Additionally, it was brought to our attention, that tracking accuracy of the Posmo App is not always accurate, as travel modes can be misinterpreted (e.g., instead of tracking a trajectory made by bicycle Posmo tracks a trajectory made with a car). Furthermore, it is possible, that movement data is either tracked where no movement took place or movement data is not being tracked where movement took place. It might be complicated to filter out these errors, as we do not have additional data covering real movement of all students to correct the Posmo App data. We therefore plan to proceed with our data as it is and discuss these limitations of the App in the discussion part of our project work. 
 
 <!-- What could be the biggest challenges/problems you might face? What is your plan B? -->
 
