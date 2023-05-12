@@ -93,6 +93,7 @@ Our data most probably needs to be manipulated and transformed in various ways.
   -   filter() - to filter data 
   -   mutate() - to calculate variables from existing variables and/or to create additional variables
 -  **tidyr** 
+
 -  **readr** - to import tabular data (e.g. .csv)
   -  read_delim() - to import tabular data
   
