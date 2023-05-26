@@ -8,8 +8,6 @@ Durchschnittliche Reisen pro Tag?
 
 # Pre-Processing 
 •	Daten bereinigen 
-  o	User anschreiben/umbenennen, 
-  o	Outliers: Norwegen entfernen, sonstige Outliers entfernen 
   o	Datetime in POSIXct format umwandeln 
   o	Sonstige Datenformate anpassen bei Bedarf
 •	Daten anreichern: 
@@ -21,17 +19,119 @@ Durchschnittliche Reisen pro Tag?
 
 ## Packages 
 ```{r}
+# clear space 
+rm(list=ls())
 
+# load packages 
+library("readr")
+library("dplyr")
+library("ggplot2")
+library("sf")
+library("terra")
+library("tmap")
+library("gitcreds")
+library("dplyr")
+library("SimilarityMeasures")
+library("lubridate")
+library("plotly")
 ```
 
 ## Load Data 
 ```{r}
+# load all posmo data --------------------------------------- 
+posmo1 <- read_delim("posmo_data/steinm05_posmo_2023_04_10_2023_05_15.csv")
+posmo2 <- read_delim("posmo_data/scheimir_posmo_2023-01-01T00_00_00+01_00-2023-05-15T23_59_59+02_00.csv")
+posmo3 <- read_delim("posmo_data/a77bd18b-2615-4b03-802b-879bf3c93798_2023-01-01T00-00-00_2023-05-13T23-59-59.csv")
+posmo4 <- read_delim("posmo_data/posmo - BuJa.csv")
+posmo5 <- read_delim("posmo_data/posmo.csv")
 
+# gps1 <- read_delim("posmo_data/gps_bike_walk_train.csv", ";")
 ```
 
 ## Filter etc. Data
 ```{r}
+# User anschreiben/umbenennen ---------------------------------------------
+# change user_id to names, so that we can read better who is who 
+# outlier - norway
+posmo1 <- posmo1 |>  
+  mutate(dataset = "posmo1")
 
+# OK
+posmo2 <- posmo2 |>  
+  mutate(dataset = "posmo2")
+
+# OK
+posmo3 <- posmo3 |>  
+  mutate(dataset = "posmo3")
+
+# OK
+posmo4 <- posmo4 |>  
+  mutate(dataset = "posmo4")
+
+# outlier - france
+posmo5 <- posmo5 |>  
+  mutate(dataset = "posmo5")
+
+
+# transform posmo data into an sf object 
+posmo <- st_as_sf(posmo, coords = c("lon_x","lat_y"), crs = 4326) |>
+  st_transform(2056)
+
+posmo1 <- st_as_sf(posmo1, coords = c("lon_x","lat_y"), crs = 4326) |>
+  st_transform(2056)
+
+posmo2 <- st_as_sf(posmo2, coords = c("lon_x","lat_y"), crs = 4326) |>
+  st_transform(2056)
+
+posmo3 <- st_as_sf(posmo3, coords = c("lon_x","lat_y"), crs = 4326) |>
+  st_transform(2056)
+
+posmo4 <- st_as_sf(posmo4, coords = c("lon_x","lat_y"), crs = 4326) |>
+  st_transform(2056)
+
+posmo5 <- st_as_sf(posmo5, coords = c("lon_x","lat_y"), crs = 4326) |>
+  st_transform(2056)
+
+# bind all data together, to obtain one single dataframe with all trajectory data 
+posmo <- rbind(posmo1, posmo2, posmo3, posmo4, posmo5)
+
+# plot data to look at areas needed to be covered for weather stations 
+tmap_mode("view")
+
+# tm_shape(posmo) +
+ # tm_dots()
+
+# look at single posmo data to determine outliers 
+# outlier - norway
+tm_shape(posmo1) +
+  tm_dots()
+
+# no outlier
+tm_shape(posmo2) +
+  tm_dots()
+
+# no outlier
+tm_shape(posmo3) +
+  tm_dots()
+
+# no outlier 
+tm_shape(posmo4) +
+  tm_dots()
+
+# outlier - france 
+tm_shape(posmo5) +
+  tm_dots()
+
+# delete trajectory data outside of switzerland (= delete outliers; norway & france) ------------------------------------------------------------------
+# load swiss boundary 
+swiss <- read_sf("data/schweiz.gpkg")
+
+# cut layer with swiss boarder
+result_layer <- st_intersection(posmo, swiss)
+
+# now outliers are out 
+tm_shape(result_layer) +
+ tm_dots()
 ```
 
 
