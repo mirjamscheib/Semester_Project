@@ -2,6 +2,9 @@
 title: "Semester_Project"
 format: html
 ---
+Alternative Forschungsfrage: Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
+
+Durchschnittliche Reisen pro Tag? 
 
 # Pre-Processing 
 •	Daten bereinigen 
@@ -26,6 +29,12 @@ format: html
 
 ```
 
+## Filter etc. Data
+```{r}
+
+```
+
+
 # Research Questions 
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
 
@@ -41,7 +50,7 @@ o	Mittlere Distanz Veloverkehr
 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns? 
 
-o	Group by movement (nicht bewegt, bewegt), Tag/nacht, Datum, Wettercondition, User_id
+o	Group by movement (nicht bewegt, bewegt), Tag/nacht, Datum, Tag, User_id
 o	Mittlere Distanz gesamt ausrechnen 
 o	Mittlere Distanz pro Travelmode 
 

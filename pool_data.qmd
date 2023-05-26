@@ -91,6 +91,11 @@ ggplot(posmo_f1, aes(X,Y, colour = dataset))+
   geom_point()+
   geom_path()
 
+# mit tmap
+tmap_mode("view")
+
+tm_shape(posmo_f1) +
+  tm_dots()
 ```
 
 Wie kann ich da jetzt eine interaktive Karte daraus machen?
