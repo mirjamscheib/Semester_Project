@@ -1,0 +1,320 @@
+---
+title: "pool_data"
+format: html
+---
+
+Delete R memory
+
+```{r}
+rm(list=ls())
+
+```
+
+# Libraries
+
+```{r}
+library(readr)
+library(dplyr)
+library(ggplot2)
+library(sf)
+library(terra)
+library(tmap)
+library(gitcreds)
+library(dplyr)
+library(SimilarityMeasures)
+library(lubridate)
+library(plotly)
+
+```
+
+
+Load all pool data
+```{r}
+a4 <- read_csv("a5.csv") #-> Datenset von nur einem Tag...
+a3 <- read_csv("a4.csv")
+a2 <- read_csv("a3.csv")
+a1 <- read_csv("a1.csv")
+
+
+View(a4)
+View(a3)
+View(a2)
+View(a1)
+
+```
+
+Daten die mit GPS Tracker aufgenommen wurden, sind sehr mühsam hereinzuladen.. muss man die ersten paar Zeilen vielleicht zuerst extern (NICHT EXCELL !!) löschen
+
+Datensets zusammenhängen
+```{r}
+a4 <- a4 |>  
+  mutate(dataset = "a4")
+
+a3 <- a3 |>  
+  mutate(dataset = "a3")
+a2 <- a2 |>  
+  mutate(dataset = "a2")
+a1 <- a1 |>  
+  mutate(dataset = "a1")
+
+posmo <- rbind(a4, a3, a2, a1)
+
+tail(posmo) #passt wurde alles wunderbar verhenkt mit einer ID des Datensets in der Spalte "dataset"
+```
+
+Nur die nötigen Spalten behalten
+```{r}
+posmo <- select(posmo, datetime, lon_x, lat_y, dataset)
+```
+
+Transform data to projected CRS
+```{r}
+posmo <- st_as_sf(posmo, coords = c("lon_x","lat_y"), crs = 4326) |>
+  st_transform(2056)
+
+head(posmo)
+```
+
+Extract coordinates to different columns and bind them back to original data set
+```{r}
+posmo_coordinates <- st_coordinates(posmo)
+
+posmo <- cbind(posmo, posmo_coordinates)
+```
+Explore data
+```{r}
+posmo_f1 <- posmo |>
+    filter(as.Date(datetime) == "2023-04-27")
+
+
+ggplot(posmo_f1, aes(X,Y, colour = dataset))+
+  geom_point()+
+  geom_path()
+
+```
+
+Wie kann ich da jetzt eine interaktive Karte daraus machen?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
