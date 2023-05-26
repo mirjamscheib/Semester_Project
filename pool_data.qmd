@@ -24,7 +24,6 @@ library(dplyr)
 library(SimilarityMeasures)
 library(lubridate)
 library(plotly)
-
 ```
 
 
