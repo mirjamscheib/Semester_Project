@@ -1,0 +1,45 @@
+---
+title: "Semester_Project"
+format: html
+---
+
+# Pre-Processing 
+•	Daten bereinigen 
+  o	User anschreiben/umbenennen, 
+  o	Outliers: Norwegen entfernen, sonstige Outliers entfernen 
+  o	Datetime in POSIXct format umwandeln 
+  o	Sonstige Datenformate anpassen bei Bedarf
+•	Daten anreichern: 
+  o	Unterscheidung Tag, Nacht (Tag: 06:00 – 22:00, Nacht: 22:00 – 06:00?)
+    	Oder einfach mit Segmenten arbeiten? Sessile and moving unterscheiden?
+  o	Unterscheidung Regen/kein Regen (Wetterstationen Voronoi)
+  o	Uni Zugehörigkeit anreichern? 
+  o	Unterscheidung zwischen Wochentag und Wochenende (Sa-So: Weekend, Mo-Fr: Workday)
+
+## Packages 
+```{r}
+
+```
+
+## Load Data 
+```{r}
+
+```
+
+# Research Questions 
+Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
+```{r}
+
+```
+
+Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns? 
+```{r}
+
+```
+
+Do students of different universities (ZHAW or UZH) show different spatio-temporal movement patterns?
+```{r}
+
+```
+
+

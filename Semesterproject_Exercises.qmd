@@ -1,0 +1,743 @@
+---
+title: "Semesterproject_exercises"
+format: html
+---
+
+# Load packages
+```{r}
+library("readr") # to import tabular data (e.g. csv)
+library("dplyr") # to manipulate (tabular) data
+library("ggplot2") # to visualize data
+library("sf") # to handle spatial vector data
+library("terra") # To handle raster data
+library("tmap") # to make maps/ visualization 
+library("lubridate") # To handle dates and times
+```
+
+
+# CMA week 1 exercises
+## Task 1: Import data
+```{r}
+miri <- read_delim("posmo_data/steinm05_posmo_2023_04_10_2023_05_15.csv")
+mirj <- read_delim("posmo_data/scheimir_posmo_2023-01-01T00_00_00+01_00-2023-05-15T23_59_59+02_00.csv")
+
+# maybe also join data into one table to use 
+together <- rbind(miri, mirj)
+
+# change user_id to names, so that we can read better who is who 
+together <- together |>
+  mutate(user_id = ifelse(user_id == "71da47e1-a7a7-4e3e-a77a-25a99294f52a", "Miri", "Mirj"))
+```
+
+## Task 2: Explore Data
+```{r}
+# very simple visualisation 
+ggplot(together, aes(lon_x, lat_y, colour = user_id)) +
+  geom_point()
+```
+
+### Input: Handling spatial data
+```{r}
+# convert data.frame into spatial object
+together <- st_as_sf(together,
+    coords = c("lon_x", "lat_y"),
+    crs = 4326) 
+
+together # has geometry attribute instead of long/lat column names
+is.data.frame(together)# TRUE, so all operations for df can be used for sf objects!
+```
+
+As you can see, st_as_sf() has added some metadata to our dataframe (geometry type, dimension, bbox, epsg and proj4string) and replaced the columns Lat and Long with a column named geometry. Other than that, the new sf object is very similar to our original dataframe.
+
+## Task 3: Project data from WGS84
+```{r}
+st_transform(together, crs = 2056)
+```
+
+### Input: Calculate Convex Hull 
+By default st_convex_hull() calculates the convex hull per feature, i.e. per point in our dataset. This of course makes little sense. In order to calculate the convex hull per animal, we need to convert our point- to multipoint-features where each feature contains all positions of one animal. This is achieved in two steps:
+```{r}
+# 1. add grouping variable to the sf object
+together_grouped <- group_by(together, user_id)
+
+# 2. use summarise() to "dissolve" all point into a multipoint object
+together_smry <- summarise(together_grouped)
+
+# 3. run st_convex_hull()
+mcp <- st_convex_hull(together_smry)
+```
+
+## Task 4: Plotting spatial objects
+```{r}
+# with base R
+plot(mcp)
+
+# with ggplot
+ggplot() +
+  coord_sf(datum = sf::st_crs(2056)) +
+  geom_sf(data = mcp, aes(fill = user_id, alpha = 0.5))
+
+# looks quite intereseting because miri was in norway it seems her convex hull is quite big
+```
+
+## Task 6: Create an interactive map 
+```{r}
+tmap_mode("view")
+
+ tm_shape(mcp) +
+  tm_fill(col = "user_id", alpha = 0.5) +
+  tm_shape(mcp) +
+  tm_borders(col = "red") 
+```
+
+
+# CMA week 2 exercises
+## Task 1: Import your data
+```{r}
+miri <- read_delim("posmo_data/steinm05_posmo_2023_04_10_2023_05_15.csv")
+mirj <- read_delim("posmo_data/scheimir_posmo_2023-01-01T00_00_00+01_00-2023-05-15T23_59_59+02_00.csv")
+
+# maybe also join data into one table to use 
+together <- rbind(miri, mirj)
+
+# change user_id to names, so that we can read better who is who 
+together <- together |>
+  mutate(user_id = ifelse(user_id == "71da47e1-a7a7-4e3e-a77a-25a99294f52a", "Miri", "Mirj"))
+
+# to convert it to a spatial object
+# setting remove = FALSE preserves the original (E/N) columns, which come in handy later on
+together <- st_as_sf(together, coords = c("lon_x", "lat_y"), crs = 4326, remove = FALSE) 
+
+# Convert data to CH1903+ LV95
+together <- st_transform(together, crs = 2056)
+```
+
+## Task 2: Getting an overview 
+Calculate the time difference between subsequent rows as described in the demo. You can calculate the time difference using the function difftime() in combination with lead().
+
+1. the function difftime() has an option units. Set this to secs to get the time difference in seconds
+2. use as.integer() to turn the output returned by difftime() into an integer.
+3. store the output in a new column (e.g. timelag)
+
+Now inspect your data in more detail. Try to answer the following questions:
+
+1. How many individuals were tracked?
+2. For how long were the individual tracked? Are there gaps?
+3. Were all individuals tracked concurrently or sequentially?
+4. What is the temporal sampling interval between the locations?
+```{r}
+# Calculate the time difference between subsequent rows as described in the demo
+together <- together |> # Take wildschwein_BE 
+    group_by(user_id) |> # group it by user_id to avoid time difference calculations between different individuals 
+    mutate(timelag_sec = as.integer(difftime(lead(datetime), datetime, units = "secs"))) # calculate time difference between subsequent rows in seconds 
+
+# 1. How many individuals were tracked?
+ggplot(together, aes(datetime, user_id)) +
+  geom_point()
+# 2 individuals (Miri, Mirj)
+
+# or you can use another way to check for individuals in your data 
+together$user_id |> unique() # through user_id
+
+
+# 2. For how long were the individuals tracked? Are there gaps?
+# AND 3. Were all individuals tracked concurrently or sequentially?
+ggplot(together, aes(datetime, timelag_sec, col = user_id)) +
+  geom_point()
+# Answer 2.: According to the plot individuals were tracked from the beginning of april until around 15. of may. 
+# Answer 3: individuals were tracked concurrently, as the sampling points in this plot overlap. 
+
+
+# What is the temporal sampling interval between the locations?
+ggplot(together, aes(timelag_sec/60)) +
+  geom_histogram(binwidth = 1) +
+  lims(x = c(0, 5000/60)) +
+  scale_y_log10()
+# the sampling intervals were between around 1 to 85 min. Most intervalls lie around 1-5 min with outliers above and under.
+```
+
+## Task 3: Deriving movement parameters I: Speed 
+In this task we will derive some additional movement parameters from our trajectories. So far our trajectories only consist of a list of time-stamped spatial locations. So let’s calculate the animal’s steplength based on the Euclidean distance between subsequent locations.
+
+Now calculate the animals’ speed between consecutive locations based on steplength and the timelag (from the last task). What speed unit do you get?
+```{r}
+# to calculate euclidean distance between locations (column E - lead(E), column N - lead(N))
+together <- together |>
+  group_by(user_id) |>
+  mutate(steplength_m = sqrt((lon_x - lead(lon_x))^2 + (lat_y - lead(lat_y))^2))
+
+# Now calculate the animals’ speed between consecutive locations based on steplength and the timelag (from the last task). What speed unit do you get? --> m/s
+together <- together |>
+  mutate(speed_ms = steplength_m/timelag_sec)
+
+hist(log10(together$speed_ms), 100)
+```
+
+## Task 4: Cross-scale movement analysis
+Laube and Purves (2011) analyse animal movement across different scales (see below). In their paper, the authors suggest reducing the granularity of the data by subsetting the data to every nth element. We will do the same on a dataset that includes 200 locations of a single wild boar with a constant sampling interval of 60 seconds.
+
+Download this dataset here: caro60.csv. Import it just like you imported the other wild boar data and save it to a new variable named caro (note that the locations are stored in EPSG 2056).
+
+Now manually reduce the granularity of our sampling interval by selecting every 3rd, 6th and 9th position and save the output to caro_3, caro_6,caro_9 accordingly.
+
+Now calculate timelag, steplength and speed for these data sets, just as you did in the last task. To finish the task, compare the speeds visually in a line plot and also visualize the trajectories in a map (see examples below). Interpret the line plot, what do the different lines for the different temporal granularities tell you?
+```{r}
+# manually reduce the granularity of the sampling interval 
+# 1. I create sequences in the required granularities 
+seq_3 <- seq(from = 1, to = 200, by = 3)
+seq_6 <- seq(from = 1, to = 200, by = 6)
+seq_9 <- seq(from = 1, to = 200, by = 9)
+
+# 2. I slice the original data with the 3 granularities, which takes away all subsequent rows in between 3, 6 or 9 rows. 
+posmo_3 <- dplyr::slice(together, seq_3)
+posmo_6 <- dplyr::slice(together, seq_6)
+posmo_9 <- dplyr::slice(together, seq_9)
+
+
+# Now calculate timelag, steplength and speed for these data sets (without reduced granularity, with 3, 6, 9), just as you did in the last task
+posmo <- together |> 
+    group_by(user_id) |> 
+    mutate(timelag_sec = as.integer(difftime(lead(datetime), datetime, units = "secs")),
+           steplength_m = sqrt((lon_x - lead(lon_x))^2 + (lat_y - lead(lat_y))^2),
+           speed_ms = steplength_m/timelag_sec)
+
+posmo_3 <- posmo_3 |> 
+    group_by(user_id) |> 
+    mutate(timelag_sec = as.integer(difftime(lead(datetime), datetime, units = "secs")),
+           steplength_m = sqrt((lon_x - lead(lon_x))^2 + (lat_y - lead(lat_y))^2),
+           speed_ms = steplength_m/timelag_sec)
+
+posmo_6 <- posmo_6 |> 
+    group_by(user_id) |> 
+    mutate(timelag_sec = as.integer(difftime(lead(datetime), datetime, units = "secs")),
+           steplength_m = sqrt((lon_x - lead(lon_x))^2 + (lat_y - lead(lat_y))^2),
+           speed_ms = steplength_m/timelag_sec)
+
+posmo_9 <- posmo_9 |> 
+    group_by(user_id) |> 
+    mutate(timelag_sec = as.integer(difftime(lead(datetime), datetime, units = "secs")),
+           steplength_m = sqrt((lon_x - lead(lon_x))^2 + (lat_y - lead(lat_y))^2),
+           speed_ms = steplength_m/timelag_sec)
+
+
+# comparing original with 3, 6 or 9 minutes resamples data 
+# Interpret the line plot, what do the different lines for the different temporal granularities tell you?
+#caro_join <- st_join(caro, caro_3, by = E)
+
+# Compare original with 3 min. 
+ggplot() +
+  geom_path(data = posmo, aes(lon_x, lat_y, color = "caro")) +
+  geom_path(data = posmo_3, aes(lon_x, lat_y, color = "caro_3")) +
+   theme_minimal() +
+   scale_color_manual(name = "Tracetory",
+                     values = c("caro" = "violet", "caro_3" = "lightblue"), 
+                     labels = c("1 minute", "3 minutes")) +
+  labs(title = "Comparing original- with 3 minutes-resampled data")
+ 
+
+# Compare original with 6 min. 
+ggplot() +
+  geom_path(data = posmo, aes(lon_x, lat_y, color = "caro")) +
+  geom_path(data = posmo_6, aes(lon_x, lat_y, color = "caro_6")) +
+   theme_minimal() +
+   scale_color_manual(name = "Tracetory",
+                     values = c("caro" = "violet", "caro_6" = "lightblue"), 
+                     labels = c("1 minute", "6 minutes")) +
+  labs(title = "Comparing original- with 6 minutes-resampled data")
+
+# Compare original with 9 min. 
+ggplot() +
+  geom_path(data = posmo, aes(lon_x, lat_y, color = "caro")) +
+  geom_path(data = posmo_9, aes(lon_x, lat_y, color = "caro_9")) +
+   theme_minimal() +
+   scale_color_manual(name = "Tracetory",
+                     values = c("caro" = "violet", "caro_9" = "lightblue"), 
+                     labels = c("1 minute", "9 minutes")) +
+  labs(title = "Comparing original- with 9 minutes-resampled data")
+
+# Comparing derived speed at different sampling intervalls 
+ggplot() +
+  geom_line(data = posmo, aes(datetime, speed_ms, color = "caro")) +
+  geom_line(data = posmo_3, aes(datetime, speed_ms, color = "caro_3")) +
+  geom_line(data = posmo_6, aes(datetime, speed_ms, color = "caro_6")) +
+  geom_line(data = posmo_9, aes(datetime, speed_ms, color = "caro_9")) +
+  theme_minimal() +
+   scale_color_manual(name = "Sampling Intervals",
+                     values = c("caro" = "red", "caro_3" = "green", "caro_6" = "lightblue", "caro_9" = "violet"), 
+                     labels = c("1 minute", "3 minutes", "6 minutes", "9 minutes")) +
+  labs(title = "Comparing derived speed at different sampling intervals", x = "Time", y = "Speed (m/s)")
+```
+
+## Task 6 and 7: Add your movement data to your respitory and explore your morvement data
+Now, import your data in the same way you imported the the wild boar data in task 1. Next, start exploring your data, similarly as you did in task 2. At a minimum:
+
+1. Import your data as a data frame and convert it to an sf object, using the correct CRS information
+2. Convert your data to CH1903+ LV95
+3. Make a map of your data using ggplot2 or tmap.
+```{r}
+# Make a map of your data using ggplot2 or tmap.
+# 1. Version with tmap
+tmap_mode("view")
+
+tm_shape(together) +
+  tm_bubbles(col = "transport_mode")
+
+# 2. Version with ggplot
+ggplot() +
+  geom_sf(data = together, aes(col = transport_mode)) +
+  theme_minimal()
+```
+
+# CMA week 3 exercises
+## Pre-preparation 
+```{r}
+# Load .csv with wildboar data
+miri <- read_delim("posmo_data/steinm05_posmo_2023_04_10_2023_05_15.csv")
+mirj <- read_delim("posmo_data/scheimir_posmo_2023-01-01T00_00_00+01_00-2023-05-15T23_59_59+02_00.csv")
+
+# maybe also join data into one table to use 
+posmo <- rbind(miri, mirj)
+
+# change user_id to names, so that we can read better who is who 
+posmo <- posmo |>
+  mutate(user_id = ifelse(user_id == "71da47e1-a7a7-4e3e-a77a-25a99294f52a", "Miri", "Mirj"))
+
+# to convert it to a spatial object
+# setting remove = FALSE preserves the original (E/N) columns, which come in handy later on
+posmo <- st_as_sf(posmo, coords = c("lon_x", "lat_y"), crs = 4326, remove = FALSE) 
+
+# Convert data to CH1903+ LV95
+posmo <- st_transform(posmo, crs = 2056)
+
+
+# create subset with only sabi and between a specific timeframe 
+# the safest way is to use POSIXct (instead of dttm) with timezone UTC so you dont have problems with summer/winter time and different timezones
+miri <- posmo |>
+    filter(user_id == "Miri", 
+           datetime >= "2023-05-01", 
+           datetime < "2023-05-10")
+
+# Visualize segmented data
+ggplot(miri, aes(lon_x, lat_y, color = datetime)) +
+  geom_point() +
+  geom_path() +
+  coord_equal()
+
+# temporal visualization (visualizes Data in subsequent point steps)
+miri |>
+  head(50) |>
+  ggplot(aes(datetime, 1)) +
+  geom_point()
+```
+
+### a) Specify a temporal window v & b) Measure the distance from every point to every other point within this temporal window v
+In the above dataset, the sampling interval is 15 minutes. If we take a temporal window of 60 minutes, that would mean including 4 fixes.
+```{r}
+# calculates time taken from each step to the next 
+# n_plus2 calculates an offset of 2 time steps
+miri <- miri |>
+  mutate(
+    n_plus1 = sqrt((lead(lon_x) - lon_x)^2 + (lead(lat_y) - lat_y)^2), # distance to pos +15 minutes
+    n_plus2 = sqrt((lead(lon_x, 2) - lon_x)^2 + (lead(lat_y, 2) - lat_y)^2), # distance to pos +30 minutes
+    n_minus1 = sqrt((lag(lon_x) - lon_x)^2 + (lag(lat_y) - lat_y)^2), # distance to pos -30 minutes
+    n_minus2 = sqrt((lag(lon_x, 2) - lon_x)^2 + (lag(lat_y, 2) - lat_y)^2) # distance to pos -15 minutes
+  )
+
+# Now we want to calculate the mean distance of nMinus2, nMinus1, nPlus1, nPlus2 for each row
+# ungroup() because when we apply when we apply rowwise() each row is a grouped individually which we don't want. 
+miri <- miri |>
+  rowwise()|>
+  mutate(
+    stepMean = mean(c(n_minus1, n_minus2, n_plus1, n_plus2))
+  ) |>
+  ungroup()
+```
+
+### c) Remove "static points"
+```{r}
+# look at stepMean values 
+# stepMean usually is between 0 and 10 metres (typical stepmean) (small amount of higher values)
+ggplot(miri, aes(stepMean)) +
+  geom_histogram(binwidth = 10) +
+  geom_vline(xintercept = mean(miri$stepMean, na.rm = TRUE))
+
+# decide on a threshold value in which i consider an animal NOT moving
+# an animal is static, when the stepMean is lower than the mean of the stepMean 
+miri <- miri |>
+  mutate(static = stepMean < mean(stepMean, na.rm = TRUE))
+
+ggplot(miri, aes(lon_x, lat_y)) +
+  geom_point(aes(color = static)) +
+  geom_path() +
+  coord_fixed()
+
+# removes all static (TRUE) points
+miri_filter <- miri |>
+    filter(!static)
+
+# Visualize results from removed static points 
+miri_filter |>
+    ggplot(aes(lon_x, lat_y)) +
+    geom_path() +
+    geom_point() +
+    coord_fixed() +
+    theme(legend.position = "bottom")
+```
+
+## Preparation 
+```{r}
+# Load .csv with wildboar data
+miri <- read_delim("posmo_data/steinm05_posmo_2023_04_10_2023_05_15.csv")
+mirj <- read_delim("posmo_data/scheimir_posmo_2023-01-01T00_00_00+01_00-2023-05-15T23_59_59+02_00.csv")
+
+# maybe also join data into one table to use 
+posmo <- rbind(miri, mirj)
+
+# change user_id to names, so that we can read better who is who 
+posmo <- posmo |>
+  mutate(user_id = ifelse(user_id == "71da47e1-a7a7-4e3e-a77a-25a99294f52a", "Miri", "Mirj"))
+
+# Keep only the necessary columns
+posmo <- select(posmo, datetime, lon_x, lat_y, user_id)
+
+# to calculate eucl. distance, we need our data in CRS 2056 format
+posmo <- st_as_sf(posmo, coords = c("lon_x","lat_y"), crs = 4326) |>
+  st_transform(2056)
+
+# we need the coordinates in separates columns to calculate eucl. distance
+posmo_coordinates <- st_coordinates(posmo)
+
+# add the separated coordinates to the posmo variable 
+posmo <- cbind(posmo, posmo_coordinates)
+
+# choosing 1 day to calculate in the next steps 
+posmo_filter <- posmo |>
+    filter(as.Date(datetime) == "2023-04-10")
+```
+
+## Task 1: Segmentation 
+```{r}
+# calculates time taken from each step to the next 
+# n_plus2 calculates an offset of 2 time steps
+posmo_filter <- posmo_filter |>
+  mutate(
+    n_plus1 = sqrt((lead(X) - X)^2 + (lead(Y) - Y)^2), 
+    n_plus2 = sqrt((lead(X, 2) - X)^2 + (lead(Y, 2) - Y)^2), 
+    n_minus1 = sqrt((lag(X) - X)^2 + (lag(Y) - Y)^2), 
+    n_minus2 = sqrt((lag(X, 2) - X)^2 + (lag(Y, 2) - Y)^2) 
+  )
+```
+
+
+## Task 2: Specify and apply threshold d
+```{r}
+# Now we want to calculate the mean distance of nMinus2, nMinus1, nPlus1, nPlus2 for each row
+# ungroup() because when we apply when we apply rowwise() each row is a grouped individually which we don't want. 
+posmo_filter <- posmo_filter |>
+  rowwise()|>
+  mutate(
+    stepMean = mean(c(n_minus1, n_minus2, n_plus1, n_plus2))
+  ) |>
+  ungroup()
+
+# look at stepMean values 
+# stepMean usually is between 0 and +/- 75 metres (typical stepmean) (small amount of higher values)
+# probably/maybe walking by foot will be edited out
+ggplot(posmo_filter, aes(stepMean)) +
+  geom_histogram(binwidth = 10) +
+  geom_vline(xintercept = mean(posmo$stepMean, na.rm = TRUE))+
+  scale_x_continuous(limits = c(0,400))
+```
+
+
+## Task 3: Visualize segmented trajectories 
+```{r}
+# decide on a threshold value in which i consider i am NOT moving
+# static, when the stepMean is lower than the mean of the stepMean 
+posmo_filter <- posmo_filter |>
+  mutate(static = stepMean < mean(stepMean, na.rm = TRUE))
+
+
+# Visualize results
+posmo_filter |>
+    ggplot(aes(X, Y)) +
+    geom_point(aes(col = static)) +
+    coord_fixed() +
+    theme(legend.position = "bottom")
+```
+
+## Task 4: Segment-based analysis 
+```{r}
+# function that assigns a unique ID to each segment
+rle_id <- function(vec) {
+    x <- rle(vec)$lengths
+    as.factor(rep(seq_along(x), times = x))
+}
+
+
+# filter posmo data
+posmo_filter <- posmo_filter |>
+    mutate(segment_id = rle_id(static))
+
+head(posmo_filter)
+
+# Visualize results
+p1 <- posmo_filter |>
+    ggplot(aes(X, Y)) +
+    geom_point(aes(col = segment_id)) +
+    coord_fixed() +
+    theme(legend.position = "bottom") +
+  labs(title = "All segments (uncleaned)")
+
+# removes all static (TRUE) points
+posmo_clean <- posmo_filter |>
+    filter(!static)
+
+# Visualize results
+p2 <- posmo_clean |>
+    ggplot(aes(X, Y)) +
+    geom_point(aes(col = segment_id)) +
+    coord_fixed() +
+    theme(legend.position = "bottom") +
+  labs(title = "Long segments (removed segments < 5min)")
+
+
+# Arrange plots vertically
+library(gridExtra)
+grid.arrange(p1, p2, ncol = 1)
+```
+
+## Task 5: Similarity measures 
+```{r}
+# mutate TrajID into factor for visualization 
+posmo <- posmo |>
+  mutate(user_id = as.factor(user_id))
+
+# visualize different trajectories 
+ggplot(posmo, aes(X, Y, col = user_id)) +
+  facet_wrap(~user_id, labeller = labeller(user_id = c("Miri" = "Miri: 1", "Mirj" = "Mirj: 2"))) +
+  geom_path() +
+  geom_point() +
+  labs(title = "Visual comparison of the 6 trajectories", subtitle = "Each plot highlights a trajectory") +
+  theme_minimal() +
+  theme(legend.position = "none")
+```
+
+# Task 6: Calculate similarity 
+Before visualizing your results think about the following: Which two trajectories to you percieve to be most similar, which are most dissimilar? Now visualize the results from the computed similarity measures. Which measure reflects your own intuition the closest?
+```{r}
+# Load .csv with wildboar data
+miri <- read_delim("posmo_data/steinm05_posmo_2023_04_10_2023_05_15.csv")
+mirj <- read_delim("posmo_data/scheimir_posmo_2023-01-01T00_00_00+01_00-2023-05-15T23_59_59+02_00.csv")
+
+# maybe also join data into one table to use 
+posmo <- rbind(miri, mirj)
+
+# change user_id to names, so that we can read better who is who 
+posmo <- posmo |>
+  mutate(user_id = ifelse(user_id == "71da47e1-a7a7-4e3e-a77a-25a99294f52a", "Miri", "Mirj"))
+
+# Keep only the necessary columns
+posmo <- select(posmo, datetime, lon_x, lat_y, user_id)
+
+# install.packages("SimilarityMeasures")
+library(SimilarityMeasures)
+
+
+# create matrix from data frame
+# 1. filter out DatetimeUTC, as it has not a double format
+posmo_filter <- posmo |>
+  select(-datetime) |>
+  mutate(user_id = ifelse(user_id == "Miri", 0, 1))
+
+
+# 2. create matrix
+mat <- as.matrix(posmo_filter)
+mat
+
+
+# Now compare trajectory 1 to trajectories 2-6 using different similarity measures
+# calculate DTW() w/ trajectory 1 & 2 -------------
+dtw_12 <- DTW(mat[c(1:2635), c(2:3)], mat[c(2636:9863), c(2:3)])
+
+
+# calculate EditDist() w/ trajectory 1 & 2 -------------
+ed_12 <-EditDist(mat[c(1:47),c(2:3)], mat[c(48:95), c(2:3)])
+
+
+# calculate Frechet() w/ trajectory 1 & 2 -------------
+frech_12 <- Frechet(mat[c(1:47),c(2:3)], mat[c(48:95), c(2:3)])
+
+
+# calculate LCSS() w/ trajectory 1 & 2 -------------
+lc_12 <- LCSS(mat[c(1:47),c(2:3)], mat[c(48:95), c(2:3)], pointSpacing = 2)
+
+
+# Which two trajectories to you percieve to be most similar, which are most dissimilar?
+# TrajID 1, 2, 3 and 6 are pretty similar 
+# TrajID 1 and 6 are the most similar out of all trajectories, when checking visually in the plot before 
+
+# make dataframe to plot results
+df <- data.frame(name = c("DTW", "EditDist", "Frechet", "LCSS"),
+           result = c(dtw_12, ed_12, frech_12, lc_12))
+
+
+# visualise results 
+ggplot() +
+  geom_bar(data = df, aes(name, result, fill = "name"), stat = "identity") +
+  facet_wrap(~name, scale = "free_y") +
+  labs(title = "Computed similarities using different measures between trajectory 1 and all other trajectories") +
+  theme(legend.position = "none")
+
+# Which measure reflects your own intuition the closest?
+# DTW() and Frechet() reflected the intuition from the visual comparison the most. 
+```
+
+# CMA week 4 exercises
+## Task 1: write your own functions 
+```{r}
+# Load .csv with posmo data
+miri <- read_delim("posmo_data/steinm05_posmo_2023_04_10_2023_05_15.csv")
+mirj <- read_delim("posmo_data/scheimir_posmo_2023-01-01T00_00_00+01_00-2023-05-15T23_59_59+02_00.csv")
+
+# maybe also join data into one table to use 
+posmo <- rbind(miri, mirj)
+
+# change user_id to names, so that we can read better who is who 
+posmo <- posmo |>
+  mutate(user_id = ifelse(user_id == "71da47e1-a7a7-4e3e-a77a-25a99294f52a", "Miri", "Mirj"))
+
+
+# write function to calc. eucl. distance ----------------------------
+euc_dist1 <- function(x, y){
+    steplength <- sqrt((lag(x, 2) - x)^2 + (lag(y, 2) - y)^2)
+    return(steplength)
+} 
+
+# Use function to calculate eucl. distance --------------------------
+posmo|>
+  mutate(
+    steplength = euc_dist1(lon_x, lat_y)
+  )
+```
+
+## Task 2: prepare analysis
+```{r}
+# filter dataset with to wildboars and between a specific timeframe
+posmo2 <- posmo |>
+  filter(user_id %in% c("Miri", "Mirj")) |>
+  filter(datetime > as.POSIXct("2023-04-20 00:00:00", tz = "UTC")) |>
+   filter(datetime > as.POSIXct("2023-04-30 23:59:59", tz = "UTC"))
+  
+
+# i see spatial overlap between the two animals, but becaue i don't have a temporal information, i do not know if they met
+posmo2 |>
+  ggplot(aes(lon_x, lat_y, col = user_id)) +
+  geom_point(alpha = 0.2) +
+  coord_equal()
+```
+
+## Task 3: create join key 
+```{r}
+# create a new column to round datetimeUTC for wildboar ------------------
+posmo2 <- posmo2 |>
+  mutate(
+    Datetime_round = lubridate::round_date(datetime, "15 minutes")
+    )
+```
+
+## Task 4: Measuring distance at concurrent locations
+```{r}
+# create two subsets with every animal ---------------------------------------
+miri <- posmo2 |>
+  filter(user_id == "Miri")
+
+mirj <- posmo2 |>
+  filter(user_id == "Mirj")
+
+
+# join the two animals -------------------------------------------------------
+together <- dplyr::inner_join(miri, mirj, by = "Datetime_round", suffix = c("_miri", "_mirj"))
+
+
+# calculate eucl. distance -------------------------------------------------
+meet <- together |>
+  mutate(
+    distance = sqrt((lon_x_miri - lon_x_mirj)^2 + (lat_y_miri - lat_y_mirj)^2),
+    meet = distance < 100
+  ) |>
+  filter(meet)
+```
+
+## Task 5: Visualize data
+```{r}
+ggplot(posmo2, aes(lon_x, lat_y, col = user_id)) +
+  geom_point(alpha = 0.2) +
+  geom_point(data = meet, aes(lon_x_miri, lat_y_miri), col = "blue") +
+  coord_equal() 
+```
+
+## Task 6: Visualise data as timecube with plotly 
+```{r}
+# install.packages("plotly")
+library(plotly)
+
+posmo2$user_id <- as.factor(posmo2$user_id)
+
+fig <- plot_ly(posmo2, x = ~lon_x, y = ~lat_y, z = ~Datetime_round, type = 'scatter3d', mode = 'lines',
+        opacity = 1, line = list(width = 6, reverscale = FALSE, color = ~user_id))
+
+fig
+```
+
+## Task 7: Find "Meet Patterns" in your own tracking data
+```{r}
+# 1. First you import your tracking data and prepare it as we discribed last week ------------------------------------------------------------------------ 
+posmo <- read_delim("data/posmo_2023-01-01T00_00_00+01_00-2023-04-28T23_59_59+02_00.csv")
+
+# Keep only the necessary columns
+posmo <- select(posmo, datetime, lon_x, lat_y)
+
+
+posmo_filter <- posmo |>
+    filter(as.Date(datetime) == "2023-03-23")
+
+# 2. Create a new column hour as a decimal hour -------------------------
+posmo <- posmo |>
+  mutate(
+    hour = hour(datetime) + minute(datetime)/60 + second(datetime)/3600
+  )
+
+# 3. Then you round this value to a multiple that seems appriate ---------
+posmo <- posmo |>
+  mutate(
+    hour_round = round(hour/0.25)*0.25
+  )
+
+# 4. Create two data.frames each containing the tracking data of only one day -----------------------------------------------------------------------------
+posmo1 <- posmo |>
+  filter(datetime > as.POSIXct("2023-04-10 00:00:00", tz = "UTC")) |>
+  filter(datetime < as.POSIXct("2023-04-10 23:59:59", tz = "UTC"))
+
+posmo2 <- posmo |>
+  filter(datetime > as.POSIXct("2023-04-11 00:00:00", tz = "UTC")) |>
+  filter(datetime < as.POSIXct("2023-04-11 23:59:59", tz = "UTC"))
+  
+# 5. Join the two data.frames by hour_round ---------------------------------
+posmo_join <- dplyr::inner_join(posmo1, posmo2, by = "hour_round", suffix = c("_posmo1", "_posmo2"))
+
+# 6. Calculate distances at “concurrent” locations and filter you data to locations that are spatially close ------------------------------------------
+# calculate eucl. distance -------------------------------------------------
+meet_posmo <- posmo_join |>
+  mutate(
+    distance = sqrt((lon_x_posmo1 - lon_x_posmo2)^2 + (lat_y_posmo1 - lat_y_posmo2)^2),
+    meet = distance < 100
+  ) |>
+  filter(meet)
+
+# visualise ----------------------------------------------------------------
+ggplot(meet_posmo, aes(lon_x_posmo1, lat_y_posmo1)) +
+  geom_point(alpha = 0.2) +
+  coord_equal() 
+```
+
