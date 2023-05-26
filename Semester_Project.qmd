@@ -28,11 +28,23 @@ format: html
 
 # Research Questions 
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
+
+o	Group by movement (nicht bewegt, bewegt), Tag/nacht, Datum, Wettercondition, User_id
+o	Mittlere Distanz gesamt ausrechnen 
+o	Mittlere Distanz pro Travelmode 
+o	Mittlere Distanz Fussverkehr 
+o	Mittlere Distanz Veloverkehr 
+
 ```{r}
 
 ```
 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns? 
+
+o	Group by movement (nicht bewegt, bewegt), Tag/nacht, Datum, Wettercondition, User_id
+o	Mittlere Distanz gesamt ausrechnen 
+o	Mittlere Distanz pro Travelmode 
+
 ```{r}
 
 ```
@@ -42,4 +54,11 @@ Do students of different universities (ZHAW or UZH) show different spatio-tempor
 
 ```
 
+# Visualisations 
+Wetterfrage: 
+•	Boxplot 
+o	pro User und Wettercondition 
+o	pro Wettercondition 
+o	Pro travel mode 
+o	Pro Fussverkehr, Veloverkehr
 
