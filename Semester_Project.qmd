@@ -160,6 +160,7 @@ posmo <- posmo |>
 
 
 # proof if convenience variables worked ------------------------------------
+# do this with unique function !! looks smoother
 ggplot() +
   geom_boxplot(data = posmo, aes(day_night, dataset))
 
@@ -183,13 +184,9 @@ weather <- read_delim("data/weather_measurements.csv")
 weather <- left_join(legend, weather, by = "stn")
 
 # create sf object --------------------------------------------------
-# empty units are created???? 
-weather <- st_as_sf(weather, coords = c("E","N"), crs = 4326) |>
-  st_transform(2056)
+weather <- st_as_sf(weather, coords = c("E","N"), crs = 2056)
 
-
-tm_shape(weather) +
- tm_dots()
+# now do voronoi spaces per day to calculate rain/no rain .... :)
 ```
 
 
