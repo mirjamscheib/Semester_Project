@@ -143,13 +143,21 @@ posmo <- posmo |>
   mutate(day_week = ifelse(weekday %in% c("Sat", "Sun"), "weekend", "weekday"))
 
 # Unterscheidung Tag, Nacht (Tag: 06:00 – 22:00, Nacht: 22:00 – 06:00?) --------------
-# geht noch nicht, funktioniert auch nicht gleich wie oben... 
+# Define the start and end time ranges
+start_time <- as.POSIXct("06:00:00", format = "%H:%M:%S", tz = "UTC")
+end_time <- as.POSIXct("22:00:00", format = "%H:%M:%S", tz = "UTC")
+
+# Extract only the time component
+start_time <- format(start_time, format = "%H:%M:%S")
+end_time <- format(end_time, format = "%H:%M:%S")
+
+# create convenience variables day/night -------------------------------------------
 posmo <- posmo |>
-  mutate(time = format(datetime, format = "%H:%M:%S"), # Add convenience variable with only time 
-         day_night = ifelse(time >= "22:00:00" & time <= "06:00:00", "night", "day")) # divide based on time into night and day
+  mutate(time = format(datetime, format = "%H:%M:%S", tz = "UTC"), # Add convenience variable with only time 
+         day_night = ifelse(time >= start_time & time <= end_time, "night", "day"))
+
 
 # proof if convenience variables worked ------------------------------------
-# did not work! ------------------------------------
 ggplot() +
   geom_boxplot(data = posmo, aes(day_night, dataset))
 
