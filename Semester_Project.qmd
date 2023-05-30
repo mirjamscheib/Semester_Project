@@ -162,10 +162,40 @@ o	Group by movement (nicht bewegt, bewegt), Tag/nacht, Datum, Wettercondition, U
 o	Mittlere Distanz pro Travelmode (wie pro travelmode?)
 
 ```{r}
-posmo |>
-  group_by(day_night, datetime, dataset)
-
 # Mittlere Distanz gesamt ausrechnen (wie geht das pro Tag?) -------------------------
+# Convert timestamp to date format
+posmo$datetime <- as.Date(posmo$datetime)
+
+# Create an sf object from the dataframe with the appropriate CRS
+posmo_sf <- st_as_sf(posmo, coords = c("X", "Y"), crs = 2056)
+
+# Transform the coordinates to the desired CRS if necessary
+posmo_sf_transformed <- st_transform(posmo_sf, crs = "+init=EPSG:2056")
+
+# Calculate distance traveled using the sf package
+posmo_sf_transformed$distance <- c(0, st_distance(posmo_sf_transformed[-1, ], posmo_sf_transformed[-nrow(posmo_sf_transformed), ]))
+
+# Aggregate the distance by date and calculate the mean distance traveled per day
+mean_distance_per_day <- aggregate(posmo_sf_transformed$distance, by = list(datetime = posmo$datetime), FUN = mean)
+
+# Print the resulting dataframe
+print(mean_distance_per_day)
+
+
+# Mittlere Distanz Fussverkehr ------------------------------------------------
+# 1. isolate all rows with travelmode "walk" ----------------------------------
+posmo_walk <- posmo |>
+  subset(transport_mode == "Walk")
+
+# Mittlere Distanz Veloverkehr -------------------------------------------------
+# 1. isolate all rows with travelmode "bike" ----------------------------------
+posmo_bike <- posmo |>
+  subset(transport_mode == "Bike")
+```
+
+
+```{r}
+### FROM VORLESUNG ------------------------------------------------------
 # calculates time taken from each step to the next 
 # n_plus2 calculates an offset of 2 time steps
 posmo <- posmo |>
@@ -183,27 +213,20 @@ posmo <- posmo |>
     stepMean = mean(c(n_minus1, n_minus2, n_plus1, n_plus2))
   ) |>
   ungroup()
-
-
-# Mittlere Distanz Fussverkehr ------------------------------------------------
-# 1. isolate all rows with travelmode "walk" ----------------------------------
-posmo_walk <- posmo |>
-  subset(transport_mode == "Walk")
-
-# Mittlere Distanz Veloverkehr -------------------------------------------------
-# 1. isolate all rows with travelmode "bike" ----------------------------------
-posmo_bike <- posmo |>
-  subset(transport_mode == "Bike")
 ```
 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns? 
 
 o	Group by movement (nicht bewegt, bewegt), Tag/nacht, Datum, Tag, User_id
-o	Mittlere Distanz gesamt ausrechnen 
 o	Mittlere Distanz pro Travelmode 
 
 ```{r}
+# Mittlere Distanz gesamt (weekend or weekday) ausrechnen -------------------------
+# Aggregate the distance by date and calculate the mean distance traveled per day of the week
+mean_distance_per_day_week <- aggregate(posmo_sf_transformed$distance, by = list(day_week = posmo$day_week), FUN = mean)
 
+# Print the resulting dataframe
+print(mean_distance_per_day_week)
 ```
 
 Do students of different universities (ZHAW or UZH) show different spatio-temporal movement patterns?
