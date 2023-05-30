@@ -2,9 +2,9 @@
 title: "Semester_Project"
 format: html
 ---
-Alternative Forschungsfrage: Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
 
-Durchschnittliche Reisen pro Tag? 
+# Introduction 
+....
 
 # Pre-Processing 
 •	Daten anreichern: 
@@ -139,7 +139,7 @@ tm_shape(result_layer) +
 
 # geht noch nicht 
 posmo <- posmo |>
-  mutate(day_week = ifelse(c(weekday == "Sat" & weekday == "Sun"), "weekend", "weekday")) 
+  mutate(day_week = ifelse(weekday == "Sat" & weekday == "Sun", "weekend", "weekday")) 
 
 # Unterscheidung Tag, Nacht (Tag: 06:00 – 22:00, Nacht: 22:00 – 06:00?) --------------
 
