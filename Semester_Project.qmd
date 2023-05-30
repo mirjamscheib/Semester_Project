@@ -147,19 +147,53 @@ posmo <- posmo |>
 posmo <- posmo |>
   mutate(time = format(datetime, format = "%H:%M:%S"), # Add convenience variable with only time 
          day_night = ifelse(time >= "22:00:00" & time <= "06:00:00", "night", "day")) # divide based on time into night and day
+
+# we need the coordinates in separates columns to calculate eucl. distance
+posmo_coordinates <- st_coordinates(posmo)
+
+# add the separated coordinates to the posmo variable 
+posmo <- cbind(posmo, posmo_coordinates)
 ```
 
 # Research Questions 
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
 
 o	Group by movement (nicht bewegt, bewegt), Tag/nacht, Datum, Wettercondition, User_id
-o	Mittlere Distanz gesamt ausrechnen 
-o	Mittlere Distanz pro Travelmode 
-o	Mittlere Distanz Fussverkehr 
-o	Mittlere Distanz Veloverkehr 
+o	Mittlere Distanz pro Travelmode (wie pro travelmode?)
 
 ```{r}
+posmo |>
+  group_by(day_night, datetime, dataset)
 
+# Mittlere Distanz gesamt ausrechnen (wie geht das pro Tag?) -------------------------
+# calculates time taken from each step to the next 
+# n_plus2 calculates an offset of 2 time steps
+posmo <- posmo |>
+  mutate(
+    n_plus1 = sqrt((lead(X) - X)^2 + (lead(Y) - Y)^2), # distance to pos +15 minutes
+    n_plus2 = sqrt((lead(X, 2) - X)^2 + (lead(Y, 2) - Y)^2), # distance to pos +30 minutes
+    n_minus1 = sqrt((lag(X) - X)^2 + (lag(Y) - Y)^2), # distance to pos -30 minutes
+    n_minus2 = sqrt((lag(X, 2) - X)^2 + (lag(Y, 2) - Y)^2) # distance to pos -15 minutes
+  )
+
+# ungroup() because when we apply when we apply rowwise() each row is a grouped individually which we don't want. 
+posmo <- posmo |>
+  rowwise()|>
+  mutate(
+    stepMean = mean(c(n_minus1, n_minus2, n_plus1, n_plus2))
+  ) |>
+  ungroup()
+
+
+# Mittlere Distanz Fussverkehr ------------------------------------------------
+# 1. isolate all rows with travelmode "walk" ----------------------------------
+posmo_walk <- posmo |>
+  subset(transport_mode == "Walk")
+
+# Mittlere Distanz Veloverkehr -------------------------------------------------
+# 1. isolate all rows with travelmode "bike" ----------------------------------
+posmo_bike <- posmo |>
+  subset(transport_mode == "Bike")
 ```
 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns? 
