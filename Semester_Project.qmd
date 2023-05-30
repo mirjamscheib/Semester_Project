@@ -139,14 +139,16 @@ tm_shape(posmo5) +
 ## Add convenience variables 
 ```{r}
 # Unterscheidung zwischen Wochentag und Wochenende (Sa-So: Weekend, Mo-Fr: Workday) -----------------------------------------------------------------
-
 # geht noch nicht 
 posmo <- posmo |>
-  mutate(day_week = ifelse(weekday == "Sat" & weekday == "Sun", "weekend", "weekday")) 
+  mutate(day_week = ifelse(weekday == "Sat", "weekend", "weekday")) # so geht es, aber wenn ich zwei attribute nehmen will (also sa & so) dann geht es nicht...
+
+# hier die codezeile die nicht funktioniert hat... 
+ # mutate(day_week = ifelse(weekday == "Sat" & weekday == "Sun", "weekend", "weekday"))
 
 # Unterscheidung Tag, Nacht (Tag: 06:00 – 22:00, Nacht: 22:00 – 06:00?) --------------
 
-# geht noch nicht
+# geht noch nicht, hier ist das gleiche problem wie oben.... 
 posmo <- posmo |>
   mutate(time = format(datetime, format = "%H:%M:%S"), # Add convenience variable with only time 
          day_night = ifelse(time >= "22:00:00" & time <= "06:00:00", "night", "day")) # divide based on time into night and day
