@@ -7,15 +7,11 @@ Alternative Forschungsfrage: Durchschnittliche Reisestrecke pro Tageszeit, gibt 
 Durchschnittliche Reisen pro Tag? 
 
 # Pre-Processing 
-•	Daten bereinigen 
-  o	Datetime in POSIXct format umwandeln 
-  o	Sonstige Datenformate anpassen bei Bedarf
 •	Daten anreichern: 
-  o	Unterscheidung Tag, Nacht (Tag: 06:00 – 22:00, Nacht: 22:00 – 06:00?)
     	Oder einfach mit Segmenten arbeiten? Sessile and moving unterscheiden?
   o	Unterscheidung Regen/kein Regen (Wetterstationen Voronoi)
   o	Uni Zugehörigkeit anreichern? 
-  o	Unterscheidung zwischen Wochentag und Wochenende (Sa-So: Weekend, Mo-Fr: Workday)
+
 
 ## Packages 
 ```{r}
@@ -48,35 +44,27 @@ posmo5 <- read_delim("posmo_data/posmo.csv")
 # gps1 <- read_delim("posmo_data/gps_bike_walk_train.csv", ";")
 ```
 
-## Filter etc. Data
+## Filter data/ create workable dataframe
 ```{r}
 # User anschreiben/umbenennen ---------------------------------------------
 # change user_id to names, so that we can read better who is who 
-# outlier - norway
 posmo1 <- posmo1 |>  
   mutate(dataset = "posmo1")
 
-# OK
 posmo2 <- posmo2 |>  
   mutate(dataset = "posmo2")
 
-# OK
 posmo3 <- posmo3 |>  
   mutate(dataset = "posmo3")
 
-# OK
 posmo4 <- posmo4 |>  
   mutate(dataset = "posmo4")
 
-# outlier - france
 posmo5 <- posmo5 |>  
   mutate(dataset = "posmo5")
 
 
-# transform posmo data into an sf object 
-posmo <- st_as_sf(posmo, coords = c("lon_x","lat_y"), crs = 4326) |>
-  st_transform(2056)
-
+# transform posmo data into an sf object ----------------------------------
 posmo1 <- st_as_sf(posmo1, coords = c("lon_x","lat_y"), crs = 4326) |>
   st_transform(2056)
 
@@ -92,9 +80,20 @@ posmo4 <- st_as_sf(posmo4, coords = c("lon_x","lat_y"), crs = 4326) |>
 posmo5 <- st_as_sf(posmo5, coords = c("lon_x","lat_y"), crs = 4326) |>
   st_transform(2056)
 
-# bind all data together, to obtain one single dataframe with all trajectory data 
+# bind all data together, create a single dataframe -------------------------
 posmo <- rbind(posmo1, posmo2, posmo3, posmo4, posmo5)
 
+# Datetime in POSIXct format umwandeln -------------------------------------
+# Sonstige Datenformate anpassen bei Bedarf --------------------------------
+posmo <- posmo |>
+  mutate(datetime = as.POSIXct(datetime),
+         weekday = as.factor(weekday),
+         transport_mode = as.factor(transport_mode),
+         dataset = as.factor(dataset))
+```
+
+### remove outliers 
+```{r}
 # plot data to look at areas needed to be covered for weather stations 
 tmap_mode("view")
 
@@ -134,6 +133,21 @@ tm_shape(result_layer) +
  tm_dots()
 ```
 
+## Add convenience variables 
+```{r}
+# Unterscheidung zwischen Wochentag und Wochenende (Sa-So: Weekend, Mo-Fr: Workday) -----------------------------------------------------------------
+
+# geht noch nicht 
+posmo <- posmo |>
+  mutate(day_week = ifelse(c(weekday == "Sat" & weekday == "Sun"), "weekend", "weekday")) 
+
+# Unterscheidung Tag, Nacht (Tag: 06:00 – 22:00, Nacht: 22:00 – 06:00?) --------------
+
+# geht noch nicht
+posmo <- posmo |>
+  mutate(time = format(datetime, format = "%H:%M:%S"), # Add convenience variable with only time 
+         day_night = ifelse(time >= "22:00:00" & time <= "06:00:00", "night", "day")) # divide based on time into night and day
+```
 
 # Research Questions 
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
