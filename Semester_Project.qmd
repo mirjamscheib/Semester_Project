@@ -87,7 +87,7 @@ posmo <- rbind(posmo1, posmo2, posmo3, posmo4, posmo5)
 # Sonstige Datenformate anpassen bei Bedarf --------------------------------
 posmo <- posmo |>
   mutate(datetime = as.POSIXct(datetime))
-        # weekday = as.factor(weekday),
+        # weekday = as.factor(weekday),   # evt nicht nötig die character in factor umzuwandeln
         # transport_mode = as.factor(transport_mode),
          #dataset = as.factor(dataset))
 ```
