@@ -86,13 +86,26 @@ posmo <- rbind(posmo1, posmo2, posmo3, posmo4, posmo5)
 # Datetime in POSIXct format umwandeln -------------------------------------
 # Sonstige Datenformate anpassen bei Bedarf --------------------------------
 posmo <- posmo |>
-  mutate(datetime = as.POSIXct(datetime),
-         weekday = as.factor(weekday),
-         transport_mode = as.factor(transport_mode),
-         dataset = as.factor(dataset))
+  mutate(datetime = as.POSIXct(datetime))
+        # weekday = as.factor(weekday),
+        # transport_mode = as.factor(transport_mode),
+         #dataset = as.factor(dataset))
 ```
 
 ### remove outliers 
+```{r}
+# delete trajectory data outside of switzerland (= delete outliers; norway & france) ------------------------------------------------------------------
+# load swiss boundary 
+swiss <- read_sf("data/schweiz.gpkg")
+
+# cut layer with swiss boarder
+result_layer <- st_intersection(posmo, swiss)
+
+# now outliers are out 
+tm_shape(result_layer) +
+ tm_dots()
+```
+
 ```{r}
 # plot data to look at areas needed to be covered for weather stations 
 tmap_mode("view")
@@ -120,18 +133,8 @@ tm_shape(posmo4) +
 # outlier - france 
 tm_shape(posmo5) +
   tm_dots()
-
-# delete trajectory data outside of switzerland (= delete outliers; norway & france) ------------------------------------------------------------------
-# load swiss boundary 
-swiss <- read_sf("data/schweiz.gpkg")
-
-# cut layer with swiss boarder
-result_layer <- st_intersection(posmo, swiss)
-
-# now outliers are out 
-tm_shape(result_layer) +
- tm_dots()
 ```
+
 
 ## Add convenience variables 
 ```{r}
@@ -147,6 +150,14 @@ posmo <- posmo |>
 posmo <- posmo |>
   mutate(time = format(datetime, format = "%H:%M:%S"), # Add convenience variable with only time 
          day_night = ifelse(time >= "22:00:00" & time <= "06:00:00", "night", "day")) # divide based on time into night and day
+
+# proof if convenience variables worked ------------------------------------
+# did not work! ------------------------------------
+ggplot() +
+  geom_boxplot(data = posmo, aes(day_night, dataset))
+
+ggplot() +
+  geom_boxplot(data = posmo, aes(day_week, dataset))
 
 # we need the coordinates in separates columns to calculate eucl. distance
 posmo_coordinates <- st_coordinates(posmo)
@@ -173,6 +184,7 @@ posmo_sf <- st_as_sf(posmo, coords = c("X", "Y"), crs = 2056)
 posmo_sf_transformed <- st_transform(posmo_sf, crs = "+init=EPSG:2056")
 
 # Calculate distance traveled using the sf package
+# BRAUCHT EEEEEEWIG ZUM RECHNEN..... 
 posmo_sf_transformed$distance <- c(0, st_distance(posmo_sf_transformed[-1, ], posmo_sf_transformed[-nrow(posmo_sf_transformed), ]))
 
 # Aggregate the distance by date and calculate the mean distance traveled per day
