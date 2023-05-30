@@ -93,6 +93,7 @@ posmo <- posmo |>
 ```
 
 ### remove outliers 
+Ich habe in den Daten gesehen, dass sogar der Transport mode Airplane drin ist. Diesen würden wir sowieso rausnehmen. Ich denke die Begrenzung anhand der schweizer grenze ist aber schon ok sonst :).
 ```{r}
 # delete trajectory data outside of switzerland (= delete outliers; norway & france) ------------------------------------------------------------------
 # load swiss boundary 
@@ -137,6 +138,7 @@ tm_shape(posmo5) +
 
 
 ## Add convenience variables 
+### day/night, weekend/weekday
 ```{r}
 # Unterscheidung zwischen Wochentag und Wochenende (Sa-So: Weekend, Mo-Fr: Workday) -----------------------------------------------------------------
 posmo <- posmo |>
@@ -170,6 +172,26 @@ posmo_coordinates <- st_coordinates(posmo)
 # add the separated coordinates to the posmo variable 
 posmo <- cbind(posmo, posmo_coordinates)
 ```
+
+### rain/no rain 
+```{r}
+# load all weather data --------------------------------------- 
+legend <- read_delim("data/weather_legend.csv")
+weather <- read_delim("data/weather_measurements.csv")
+
+# join data together ---------------------------------------------
+weather <- left_join(legend, weather, by = "stn")
+
+# create sf object --------------------------------------------------
+# empty units are created???? 
+weather <- st_as_sf(weather, coords = c("E","N"), crs = 4326) |>
+  st_transform(2056)
+
+
+tm_shape(weather) +
+ tm_dots()
+```
+
 
 # Research Questions 
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
