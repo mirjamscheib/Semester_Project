@@ -92,27 +92,12 @@ posmo <- posmo |>
          #dataset = as.factor(dataset))
 ```
 
-### remove outliers 
-Ich habe in den Daten gesehen, dass sogar der Transport mode Airplane drin ist. Diesen würden wir noch rausnehmen, falls er noch drin ist. Ich denke die Begrenzung anhand der schweizer grenze ist aber schon ok sonst :).
+### OK - remove outliers 
+Ich habe in den Daten gesehen, dass sogar der Transport mode Airplane drin ist. Diesen habe ich am Schluss hier auch noch entfernt. Ich denke die Begrenzung anhand der schweizer grenze ist aber schon ok sonst :).
 ```{r}
 # delete trajectory data outside of switzerland (= delete outliers; norway & france) ------------------------------------------------------------------
-# load swiss boundary 
-swiss <- read_sf("data/schweiz.gpkg")
-
-# cut layer with swiss boarder
-result_layer <- st_intersection(posmo, swiss)
-
-# now outliers are out 
-tm_shape(result_layer) +
- tm_dots()
-```
-
-```{r}
-# plot data to look at areas needed to be covered for weather stations 
+# plot data to look where outliers are 
 tmap_mode("view")
-
-# tm_shape(posmo) +
- # tm_dots()
 
 # look at single posmo data to determine outliers 
 # outlier - norway
@@ -134,7 +119,22 @@ tm_shape(posmo4) +
 # outlier - france 
 tm_shape(posmo5) +
   tm_dots()
+
+# load swiss boundary 
+swiss <- read_sf("data/schweiz.gpkg")
+
+# cut layer with swiss boarder
+result_layer <- st_intersection(posmo, swiss)
+
+# now outliers are out 
+tm_shape(result_layer) +
+ tm_dots()
+
+# remove transport_mode Airplane because it is part of the outliers and transport speed is far to high 
+posmo <- posmo |>
+  subset(transport_mode != "Airplane")
 ```
+
 
 
 ## Add convenience variables 
@@ -176,7 +176,7 @@ Bedeutung Spalten in weather:
 - rco150z0 = Niederschlagsdauer	in Zehnminutensumme (wir brauchen also das, wenn 0 oder NA dann = no_rain)
 - sre00z0 = Sonnenscheindauer	Zehnminutensumme
 
-Das wäre das Vorgehen mit den Thiessenpolygonen. Ich habe aber noch nicht rausgefunden wie ich den polygonen die Regeninformation zuweisen kann, pro stunde/tag und das dann den Punkten zuweisen. (siehe Version 2, finde ich vielversprechender)
+Das wäre das Vorgehen mit den Thiessenpolygonen. Ich habe aber noch nicht rausgefunden wie ich den polygonen die Regeninformation zuweisen kann, pro stunde/tag und das dann den Punkten zuweisen. (siehe Version 2, finde ich irgendwie vielversprechender)
 ```{r}
 # load all weather data --------------------------------------- 
 legend <- read_delim("data/weather_legend.csv")
@@ -228,6 +228,7 @@ Hier habe ich versucht, dass für jeden Punkt der gemessen wurde in der Trajecto
 Hat aber noch nicht geklappt. 
 ```{r}
 # create a new column to round datetimeUTC for wildboar ------------------
+# diesen Abschnitt kann man glaube ich dann ignorieren 
 posmo1 <- posmo1 |>
   select(-place_name) |>
   mutate(
@@ -245,10 +246,18 @@ weather <- weather |>
 # gibt hald ein komischer Output der ja keine Infos zum Regen drin hat 
 joined_data <- st_nearest_feature(posmo1, weather)
 
+joined_data <- st_as_sf(joined_data, crs = 2056) 
 
 # hier noch keine Lösung gefunden 
 annotated_data <- posmo1 %>%
-  st_join(joined_data, by = c("Datetime_round" = "Datetime_round"))
+  st_join(posmo1, joined_data)
+
+# andere Möglichkeit über distance calculation 
+# Calculate the distances between the reference point and all other points
+distances <- st_distance(weather, posmo1)
+
+# Find the ID of the nearest point
+nearest_point <- points[which.min(distances), ]
 ```
 
 ### ignore - (Annotate Trajectories from vector data)
