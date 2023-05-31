@@ -13,7 +13,7 @@ format: html
   o	Uni Zugehörigkeit anreichern? 
 
 
-## Packages 
+## OK - Packages 
 ```{r}
 # clear space 
 rm(list=ls())
@@ -32,7 +32,7 @@ library("lubridate")
 library("plotly")
 ```
 
-## Load Data 
+## OK - Load Data 
 ```{r}
 # load all posmo data --------------------------------------- 
 posmo1 <- read_delim("posmo_data/steinm05_posmo_2023_04_10_2023_05_15.csv")
@@ -44,7 +44,7 @@ posmo5 <- read_delim("posmo_data/posmo.csv")
 # gps1 <- read_delim("posmo_data/gps_bike_walk_train.csv", ";")
 ```
 
-## Filter data/ create workable dataframe
+## OK - Filter data/ create workable dataframe
 ```{r}
 # User anschreiben/umbenennen ---------------------------------------------
 # change user_id to names, so that we can read better who is who 
@@ -93,7 +93,7 @@ posmo <- posmo |>
 ```
 
 ### remove outliers 
-Ich habe in den Daten gesehen, dass sogar der Transport mode Airplane drin ist. Diesen würden wir sowieso rausnehmen. Ich denke die Begrenzung anhand der schweizer grenze ist aber schon ok sonst :).
+Ich habe in den Daten gesehen, dass sogar der Transport mode Airplane drin ist. Diesen würden wir noch rausnehmen, falls er noch drin ist. Ich denke die Begrenzung anhand der schweizer grenze ist aber schon ok sonst :).
 ```{r}
 # delete trajectory data outside of switzerland (= delete outliers; norway & france) ------------------------------------------------------------------
 # load swiss boundary 
@@ -138,7 +138,7 @@ tm_shape(posmo5) +
 
 
 ## Add convenience variables 
-### day/night, weekend/weekday
+### OK - day/night, weekend/weekday
 ```{r}
 # Unterscheidung zwischen Wochentag und Wochenende (Sa-So: Weekend, Mo-Fr: Workday) -----------------------------------------------------------------
 posmo <- posmo |>
@@ -160,12 +160,8 @@ posmo <- posmo |>
 
 
 # proof if convenience variables worked ------------------------------------
-# do this with unique function !! looks smoother
-ggplot() +
-  geom_boxplot(data = posmo, aes(day_night, dataset))
-
-ggplot() +
-  geom_boxplot(data = posmo, aes(day_week, dataset))
+unique(posmo$day_night)
+unique(posmo$day_week)
 
 # we need the coordinates in separates columns to calculate eucl. distance
 posmo_coordinates <- st_coordinates(posmo)
@@ -174,21 +170,124 @@ posmo_coordinates <- st_coordinates(posmo)
 posmo <- cbind(posmo, posmo_coordinates)
 ```
 
-### rain/no rain 
+### rain/no rain Version 1
+Bedeutung Spalten in weather: 
+- tre200s0 = Lufttemperatur 2 m über Boden	Momentanwert (°C)
+- rco150z0 = Niederschlagsdauer	in Zehnminutensumme (wir brauchen also das, wenn 0 oder NA dann = no_rain)
+- sre00z0 = Sonnenscheindauer	Zehnminutensumme
+
+Das wäre das Vorgehen mit den Thiessenpolygonen. Ich habe aber noch nicht rausgefunden wie ich den polygonen die Regeninformation zuweisen kann, pro stunde/tag und das dann den Punkten zuweisen. (siehe Version 2, finde ich vielversprechender)
 ```{r}
 # load all weather data --------------------------------------- 
 legend <- read_delim("data/weather_legend.csv")
-weather <- read_delim("data/weather_measurements.csv")
+weather <- read_delim("data/weather_measurements.csv") 
 
 # join data together ---------------------------------------------
-weather <- left_join(legend, weather, by = "stn")
+# left_join() weil wir nur die Informationen haben wollen, für die auch Messwerte vorliegen. Messwerte sind in der Tabelle weather
+weather <- left_join(weather, legend, by = "stn")
 
 # create sf object --------------------------------------------------
 weather <- st_as_sf(weather, coords = c("E","N"), crs = 2056)
 
 # now do voronoi spaces per day to calculate rain/no rain .... :)
+## Aufgabe 3: Dichteverteilung mit Thiessen Polygonen 
+# thiessenpolygone erstellen 
+thiessenpolygone <- weather |>
+  st_union() |>
+  st_voronoi()
+
+# mit ausdehnung schweiz zusammenführen
+swiss <- st_union(swiss)
+
+thiessenpolygone <- st_cast(thiessenpolygone)
+
+# thiessen polygone auf CH-Ausdehnung zuschneiden
+thiessenpolygone_clip <- st_intersection(thiessenpolygone, swiss)
+
+# Visualisierung der Thiessen-Polygone
+ggplot() +
+  geom_sf(data = swiss) +
+  geom_sf(data = thiessenpolygone_clip, fill = NA) +
+  theme_void()
+
+# jetzt müsste man die thiessenpolygone in richtige spatial polygons umwandeln (vlt. auch multipolygone) und denen dann die spalte mit den Regeninformationen zuweisen
+# die Polygone kann man sowieso machen, die ändern ja nicht über die Zeit. Dann wäre aber noch die Frage, wie wir pro Tag, vlt. auch pro 10min etc. dann die Regenwerte zuweisen können 
+# thiessenpolygone als shapefile speichern
+st_write(thiessenpolygone_clip, "data/thiessenpolygon.shp")
+
+# shapefile öffnen
+weather_polygons <- read_sf("data/thiessenpolygon.shp")
+
+#link results with mesh 
+weather_polygons$rco150z0 <- as.numeric(weather$rco150z0)
 ```
 
+### rain/no rain Version 2 
+Hier habe ich versucht, dass für jeden Punkt der gemessen wurde in der Trajectory jeweils ausgerechnet wird, welche Wetterstation am nächsten ist & dann für die am nächsten liegende Wetterstation die Regenwerte übernommen werden sollen 
+
+Hat aber noch nicht geklappt. 
+```{r}
+# create a new column to round datetimeUTC for wildboar ------------------
+posmo1 <- posmo1 |>
+  select(-place_name) |>
+  mutate(
+    Datetime_round = lubridate::round_date(datetime, "15 minutes")
+    )
+
+
+weather <- weather |>
+  mutate(
+    Datetime_round = lubridate::round_date(time, "15 minutes")
+    )
+
+
+# finds the nearest weather stations for every trajectory point  
+# gibt hald ein komischer Output der ja keine Infos zum Regen drin hat 
+joined_data <- st_nearest_feature(posmo1, weather)
+
+
+# hier noch keine Lösung gefunden 
+annotated_data <- posmo1 %>%
+  st_join(joined_data, by = c("Datetime_round" = "Datetime_round"))
+```
+
+### ignore - (Annotate Trajectories from vector data)
+Das wäre dann das Vorgehen, wenn wir den Thiessenpolygonen die Regeninformationen zugewiesen haben 
+```{r}
+# to annotate points of wildboar data with landuse variables
+# st_join() is always a left join 
+wildschwein_BE <- st_join(wildschwein_BE, fanel)
+
+# overlay the two layers to look where they overlap 
+ggplot() +
+  # geom_sf(aes(fill = Frucht)) +
+  geom_sf(data = wildschwein_BE, alpha = 0.3, pch = ".", aes(col = Frucht)) +
+  theme(legend.position = "none") +
+  coord_sf(datum = 2056)
+```
+
+### ignore - (Annotate Trajectories from raster data)
+Das wäre das Vorgehen, wenn wir eine Interpolationsmethode wie IDW verwenden würden & das Resultat der Wetterdaten ein Raster wäre
+```{r}
+# hier muss das raster zuerst und dann der Punktlayer angegeben werden 
+# man kann auch ein buffer anwenden
+veg_extract <- extract(veg, wildschwein_BE)
+
+# mit buffer angewendet
+veg_extract <- extract(veg, wildschwein_buffer, fun = mean)
+
+str(veg_extract)
+
+# annotate raster results to original dataframe 
+wildschwein_BE$veg <- veg_extract$vegetationshoehe_LFI
+
+# overlay the two layers to look where they overlap 
+ggplot() +
+  # geom_sf(aes(fill = Frucht)) +
+  geom_sf(data = wildschwein_BE, alpha = 0.3, pch = ".", aes(col = veg)) +
+  theme(legend.position = "none") +
+  coord_sf(datum = 2056)
+```
 
 # Research Questions 
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
