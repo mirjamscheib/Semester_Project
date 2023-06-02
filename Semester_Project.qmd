@@ -102,14 +102,14 @@ posmo$user_id |>
 #[4] "4bcef553-b12c-4d77-9728-097fb8af98d3" "1af6fc8e-273d-4889-894b-5dadadd70a01"
 View(posmo)
 
-posmo$USER_ID[posmo$user_id == "71da47e1-a7a7-4e3e-a77a-25a99294f52a"] <- "user1"
-posmo$USER_ID[posmo$user_id == "57a21dc5-838a-4d5c-b420-608f49e33430"] <- "user2"
-posmo$USER_ID[posmo$user_id == "a77bd18b-2615-4b03-802b-879bf3c93798"] <- "user3"
-posmo$USER_ID[posmo$user_id == "4bcef553-b12c-4d77-9728-097fb8af98d3"] <- "user4"
-posmo$USER_ID[posmo$user_id == "1af6fc8e-273d-4889-894b-5dadadd70a01"] <- "user5"
+posmo$USER[posmo$user_id == "71da47e1-a7a7-4e3e-a77a-25a99294f52a"] <- "user1"
+posmo$USER[posmo$user_id == "57a21dc5-838a-4d5c-b420-608f49e33430"] <- "user2"
+posmo$USER[posmo$user_id == "a77bd18b-2615-4b03-802b-879bf3c93798"] <- "user3"
+posmo$USER[posmo$user_id == "4bcef553-b12c-4d77-9728-097fb8af98d3"] <- "user4"
+posmo$USER[posmo$user_id == "1af6fc8e-273d-4889-894b-5dadadd70a01"] <- "user5"
 
 #View data consistency
-ggplot(posmo, aes(datetime, USER_ID))+
+ggplot(posmo, aes(datetime, USER))+
          geom_point()
 # -> User4 will be removed!!
 
@@ -165,20 +165,17 @@ tm_shape(posmo_cut) +
 posmo_cut <- posmo_cut |>
   subset(transport_mode != "Airplane")
 
-# save cleaned dataset in an .csv file 
-st_write(posmo_cut, "posmo_data/posmo_cut.csv")
+# save cleaned dataset in an .gpkg file
+st_write(posmo_cut, "posmo_data/posmo_cut.gpkg")
 ```
-
 
 
 ## Add convenience variables 
 ### OK - day/night, weekend/weekday
 ```{r}
 # load cleaned data set ------------------------------------
-posmo <- read_delim("posmo_data/posmo_cut.csv")
+posmo_cut <- read_sf("posmo_data/posmo_cut.gpkg")
 
-# create sf object --------------------------------------------------
-posmo <- st_as_sf(posmo, coords = c("lon_x","lat_y"), crs = 2056)
 
 # Unterscheidung zwischen Wochentag und Wochenende (Sa-So: Weekend, Mo-Fr: Workday) -----------------------------------------------------------------
 posmo <- posmo |>
