@@ -151,14 +151,14 @@ swiss <- read_sf("data/schweiz.gpkg")
 
 # cut layer with swiss boarder
 # result_layer <- st_intersection(posmo, swiss)
-posmo <- st_intersection(posmo, swiss)
+posmo_cut <- st_intersection(posmo, swiss)
 
 # now outliers are out 
-tm_shape(result_layer) +
+tm_shape(posmot_cut) +
  tm_dots()
 
 # remove transport_mode Airplane because it is part of the outliers and transport speed is far to high 
-posmo <- posmo |>
+posmo_cut <- posmo_cut |>
   subset(transport_mode != "Airplane")
 ```
 Miri: Geht bei mir aus einem sehr komischen Grund nicht: "Error in dirname(to) : path too long" 
