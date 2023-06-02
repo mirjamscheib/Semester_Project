@@ -91,6 +91,8 @@ posmo <- posmo |>
         # transport_mode = as.factor(transport_mode),
          #dataset = as.factor(dataset))
 ```
+
+
 ## Data consistency overview and removal of inconsistent datasets
 ```{r}
 # add better user_id with information which dataset it is
