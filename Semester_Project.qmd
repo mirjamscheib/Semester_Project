@@ -81,7 +81,7 @@ posmo5 <- st_as_sf(posmo5, coords = c("lon_x","lat_y"), crs = 4326) |>
   st_transform(2056)
 
 # bind all data together, create a single dataframe -------------------------
-posmo <- rbind(posmo1, posmo2, posmo3, posmo5)
+posmo <- rbind(posmo1, posmo2, posmo3, posmo4, posmo5)
 
 # Datetime in POSIXct format umwandeln -------------------------------------
 # Sonstige Datenformate anpassen bei Bedarf --------------------------------
@@ -115,7 +115,11 @@ ggplot(posmo, aes(datetime, USER_ID))+
 
 posmo <- subset(posmo, dataset != "posmo4") 
 
-#Wie kontrolliere ich das?
+#Kontrollieren:
+posmo$dataset |> 
+  unique()
+#posmo4 successfully removed
+
 ```
 
 ### OK - remove outliers 
@@ -160,9 +164,6 @@ tm_shape(result_layer) +
 posmo <- posmo |>
   subset(transport_mode != "Airplane")
 ```
-Miri: Geht bei mir aus einem sehr komischen Grund nicht: "Error in dirname(to) : path too long" 
-Ich glaube das hängt mit dem tmap("view") zusammen, aber ich konnte auch mit Google nicht feststellen, woran es liegt. Nils fragen..
-
 
 
 
@@ -274,7 +275,6 @@ Hat aber noch nicht geklappt.
 # create a new column to round datetimeUTC for wildboar ------------------
 # diesen Abschnitt kann man glaube ich dann ignorieren 
 posmo1 <- posmo1 |>
-  select(-place_name) |>
   mutate(
     Datetime_round = lubridate::round_date(datetime, "15 minutes")
     )
@@ -289,6 +289,8 @@ weather <- weather |>
 # finds the nearest weather stations for every trajectory point  
 # gibt hald ein komischer Output der ja keine Infos zum Regen drin hat 
 joined_data <- st_nearest_feature(posmo1, weather)
+
+
 
 joined_data <- st_as_sf(joined_data, crs = 2056) 
 
