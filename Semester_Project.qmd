@@ -275,7 +275,7 @@ write_csv(posmo_sep, "posmo_data/posmo_end1.csv")
 ```
 
 # Research Questions 
-## Question 1
+## Question 1: Miriam 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns?
 - spatial: movement pattern (duration, distance etc. Literatur)
 - temporal: mean distance per weekend-day or workday-day DONE
@@ -409,7 +409,7 @@ posmo <- posmo |>
 ```
 
 
-## Question 2
+## Question 2: Mirjam 
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
 - spatial: movement pattern (duration, distance etc. Literatur)
 - temporal: mean distance per weekend-day or workday-day
@@ -461,7 +461,7 @@ ggplot() +
   labs(title = "mean travelled distance compared between rain/no rain for bike") 
 ```
 
-## Question 3
+## Question 3: Miriam
 Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
 Durchschnittliche Reisen pro Tag? 
 
