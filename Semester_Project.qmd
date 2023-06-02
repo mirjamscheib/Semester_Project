@@ -154,7 +154,8 @@ tm_shape(posmo5) +
 swiss <- read_sf("data/schweiz.gpkg")
 
 # cut layer with swiss boarder
-result_layer <- st_intersection(posmo, swiss)
+# result_layer <- st_intersection(posmo, swiss)
+posmo <- st_intersection(posmo, swiss)
 
 # now outliers are out 
 tm_shape(result_layer) +
