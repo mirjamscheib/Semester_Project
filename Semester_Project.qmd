@@ -292,31 +292,6 @@ posmo$date <- as.Date(posmo$datetime)
 
 # Transform the coordinates to the desired CRS if necessary
 # posmo_sf_transformed <- st_transform(posmo_sf, crs = "+init=EPSG:2056") nicht nötig weil schon transofrmiert 
-
-
-#What transport modes are there?
-posmo$transport_mode |> 
-  unique()
-# [1] NA         "Other1"   "Car"      "Walk"     "Train"    "Tram"     "Bike"     "Run"      "Bus"      "Horse"    "Airplane"
-#[12] "E_Bike"
-
-# Mittlere Distanz Fussverkehr ------------------------------------------------
-# 1. isolate all rows with travelmode "walk" ----------------------------------
-posmo_walk <- posmo |>
-  subset(transport_mode == "Walk" & transport_mode == "Run") #include "Run"?
-
-# Mittlere Distanz Veloverkehr -------------------------------------------------
-# 1. isolate all rows with travelmode "bike" ----------------------------------
-posmo_bike <- posmo |>
-  subset(transport_mode == "Bike")
-
-# Mittlere Distanz ÖV/Auto -------------------------------------------------
-# 1. isolate all rows with travelmode "car", "train" ----------------------------------
-posmo_car_train <- posmo |>
-  subset(transport_mode == c("Train", "Tram", "Car", "Bus"))#works!
-
-#Check for "Horse" and "Run", Frequency? Include/exclude?
-  
 ```
 
 Calculate timelag, steplength and speed for posmo 
@@ -439,14 +414,76 @@ Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns
 - spatial: movement pattern (duration, distance etc. Literatur)
 - temporal: mean distance per weekend-day or workday-day
 ```{r}
+#Steplength rain Influence -------------------------------------
+#But we want mean of travelling distance ...  over all travel modes 
+mean_travldis_per_rain <- posmo |> 
+  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))|>  
+  group_by(rain, date, dataset) |> 
+  summarise(travldis_day = mean(steplength_m, na.rm = T))
 
+# visualize 
+ggplot() +
+  geom_boxplot(data = mean_travldis_per_rain, aes(rain, travldis_day)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") 
+
+#What transport modes are there?
+posmo$transport_mode |> 
+  unique()
+# [1] NA         "Other1"   "Car"      "Walk"     "Train"    "Tram"     "Bike"     "Run"      "Bus"      "Horse"    "Airplane"
+#[12] "E_Bike"
+
+# Mittlere Distanz Fussverkehr ------------------------------------------------
+# 1. isolate all rows with travelmode "walk" ----------------------------------
+posmo_walk <- posmo |>
+  subset(transport_mode == c("Walk", "Run")) #include "Run"?
+
+# Mittlere Distanz Veloverkehr -------------------------------------------------
+# 1. isolate all rows with travelmode "bike" ----------------------------------
+posmo_bike <- posmo |>
+  subset(transport_mode == "Bike")
+
+# Mittlere Distanz ÖV/Auto -------------------------------------------------
+# 1. isolate all rows with travelmode "car", "train" ----------------------------------
+posmo_car_train <- posmo |>
+  subset(transport_mode == c("Train", "Tram", "Car", "Bus"))#works!
+
+#Check for "Horse" and "Run", Frequency? Include/exclude?
+
+#But we want mean of travelling distance ...  for BIKE  
+mean_travldis_per_rain_bike <- posmo_bike |> 
+  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))|>  
+  group_by(rain, date, dataset) |> 
+  summarise(travldis_day = mean(steplength_m, na.rm = T))
+
+# visualize 
+ggplot() +
+  geom_boxplot(data = mean_travldis_per_rain_bike, aes(rain, travldis_day)) +
+  labs(title = "mean travelled distance compared between rain/no rain for bike") 
 ```
 
 ## Question 3
 Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
 Durchschnittliche Reisen pro Tag? 
-```{r}
 
+- gleicher Plot wie im Best practice example: linienplot mit weekdays (pro weekday 1 linie)
+```{r}
+# function to retrieve the statistics for a specific day
+# number is the number of mondays (e.g.) in the data set. Monday appears 14 times, the rest 13 times
+day_hour <- function(dataset = posmo, day, number){ 
+  day_stat <- dataset %>% 
+    filter(weekday == day) %>% 
+    group_by(start_hour) %>% 
+    summarize(count = n()) %>% 
+    mutate(count = count/number)
+  return (day_stat) 
+}
+monday <-day_hour(day = "Montag", number = 14)
+tuesday <- day_hour(day = "Dienstag", number = 13)
+wednesday <- day_hour(day = "Mittwoch", number = 13)
+thursday <- day_hour(day = "Donnerstag", number = 13)
+friday <- day_hour(day = "Freitag", number = 13)
+saturday <- day_hour(day = "Samstag", number = 13)
+sunday <- day_hour(day = "Sonntag", number = 13)
 ```
 
 
