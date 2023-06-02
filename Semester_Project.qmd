@@ -158,12 +158,15 @@ swiss <- read_sf("data/schweiz.gpkg")
 posmo_cut <- st_intersection(posmo, swiss)
 
 # now outliers are out 
-tm_shape(posmot_cut) +
+tm_shape(posmo_cut) +
  tm_dots()
 
 # remove transport_mode Airplane because it is part of the outliers and transport speed is far to high 
 posmo_cut <- posmo_cut |>
   subset(transport_mode != "Airplane")
+
+# save cleaned dataset in an .csv file 
+st_write(posmo_cut, "posmo_data/posmo_cut.csv")
 ```
 
 
@@ -171,6 +174,12 @@ posmo_cut <- posmo_cut |>
 ## Add convenience variables 
 ### OK - day/night, weekend/weekday
 ```{r}
+# load cleaned data set ------------------------------------
+posmo <- read_delim("posmo_data/posmo_cut.csv")
+
+# create sf object --------------------------------------------------
+posmo <- st_as_sf(posmo, coords = c("lon_x","lat_y"), crs = 2056)
+
 # Unterscheidung zwischen Wochentag und Wochenende (Sa-So: Weekend, Mo-Fr: Workday) -----------------------------------------------------------------
 posmo <- posmo |>
   mutate(day_week = ifelse(weekday %in% c("Sat", "Sun"), "weekend", "weekday"))
@@ -214,15 +223,13 @@ ggplot(posmo, aes(datetime, USER_ID))+
 ```
 
 
-
-
-### rain/no rain Version 1
+### rain/no rain Nils
 Bedeutung Spalten in weather: 
 - tre200s0 = Lufttemperatur 2 m über Boden	Momentanwert (°C)
 - rco150z0 = Niederschlagsdauer	in Zehnminutensumme (wir brauchen also das, wenn 0 oder NA dann = no_rain)
 - sre00z0 = Sonnenscheindauer	Zehnminutensumme
 
-Das wäre das Vorgehen mit den Thiessenpolygonen. Ich habe aber noch nicht rausgefunden wie ich den polygonen die Regeninformation zuweisen kann, pro stunde/tag und das dann den Punkten zuweisen. (siehe Version 2, finde ich irgendwie vielversprechender)
+Hier habe ich versucht, dass für jeden Punkt der gemessen wurde in der Trajectory jeweils ausgerechnet wird, welche Wetterstation am nächsten ist & dann für die am nächsten liegende Wetterstation die Regenwerte übernommen werden sollen 
 ```{r}
 # load all weather data --------------------------------------- 
 legend <- read_delim("data/weather_legend.csv")
@@ -235,114 +242,26 @@ weather <- left_join(weather_raw, legend, by = "stn")
 # create sf object --------------------------------------------------
 weather <- st_as_sf(weather, coords = c("E","N"), crs = 2056)
 
-# now do voronoi spaces per day to calculate rain/no rain .... :)
-## Aufgabe 3: Dichteverteilung mit Thiessen Polygonen 
-# thiessenpolygone erstellen 
-thiessenpolygone <- weather |>
-  st_union() |>
-  st_voronoi()
-
-# mit ausdehnung schweiz zusammenführen
-swiss <- st_union(swiss)
-
-thiessenpolygone <- st_cast(thiessenpolygone)
-
-# thiessen polygone auf CH-Ausdehnung zuschneiden
-thiessenpolygone_clip <- st_intersection(thiessenpolygone, swiss)
-
-# Visualisierung der Thiessen-Polygone
-ggplot() +
-  geom_sf(data = swiss) +
-  geom_sf(data = thiessenpolygone_clip, fill = NA) +
-  theme_void()
-
-# jetzt müsste man die thiessenpolygone in richtige spatial polygons umwandeln (vlt. auch multipolygone) und denen dann die spalte mit den Regeninformationen zuweisen
-# die Polygone kann man sowieso machen, die ändern ja nicht über die Zeit. Dann wäre aber noch die Frage, wie wir pro Tag, vlt. auch pro 10min etc. dann die Regenwerte zuweisen können 
-# thiessenpolygone als shapefile speichern
-st_write(thiessenpolygone_clip, "data/thiessenpolygon.shp")
-
-# shapefile öffnen
-weather_polygons <- read_sf("data/thiessenpolygon.shp")
-
-#link results with mesh 
-weather_polygons$rco150z0 <- as.numeric(weather$rco150z0)
-```
-
-### rain/no rain Version 2 
-Hier habe ich versucht, dass für jeden Punkt der gemessen wurde in der Trajectory jeweils ausgerechnet wird, welche Wetterstation am nächsten ist & dann für die am nächsten liegende Wetterstation die Regenwerte übernommen werden sollen 
-
-Hat aber noch nicht geklappt. 
-```{r}
 # create a new column to round datetimeUTC for wildboar ------------------
 # diesen Abschnitt kann man glaube ich dann ignorieren 
-posmo1 <- posmo1 |>
+posmo_cut <- posmo_cut |>
   mutate(
-    Datetime_round = lubridate::round_date(datetime, "15 minutes")
+    Datetime_round = lubridate::round_date(datetime, "10 minutes")
     )
 
+# create an sf object for legend 
+legend_sf <- st_as_sf(legend, coords = c("E","N"), crs = 2056) 
 
-weather <- weather |>
-  mutate(
-    Datetime_round = lubridate::round_date(time, "15 minutes")
-    )
-
-
-# finds the nearest weather stations for every trajectory point  
-# gibt hald ein komischer Output der ja keine Infos zum Regen drin hat 
-joined_data <- st_nearest_feature(posmo1, weather)
+# calculate nearest weather stations from every point 
+posmo_cut$stn <- legend_sf$stn[st_nearest_feature(posmo_cut, legend_sf)]
 
 
+# select only rain data, time and station names from weather 
+weather_posmo <- st_drop_geometry(weather) |> 
+  select(rco150z0, time, stn) 
 
-joined_data <- st_as_sf(joined_data, crs = 2056) 
-
-# hier noch keine Lösung gefunden 
-annotated_data <- posmo1 %>%
-  st_join(posmo1, joined_data)
-
-# andere Möglichkeit über distance calculation 
-# Calculate the distances between the reference point and all other points
-distances <- st_distance(weather, posmo1)
-
-# Find the ID of the nearest point
-nearest_point <- points[which.min(distances), ]
-```
-
-### ignore - (Annotate Trajectories from vector data)
-Das wäre dann das Vorgehen, wenn wir den Thiessenpolygonen die Regeninformationen zugewiesen haben 
-```{r}
-# to annotate points of wildboar data with landuse variables
-# st_join() is always a left join 
-wildschwein_BE <- st_join(wildschwein_BE, fanel)
-
-# overlay the two layers to look where they overlap 
-ggplot() +
-  # geom_sf(aes(fill = Frucht)) +
-  geom_sf(data = wildschwein_BE, alpha = 0.3, pch = ".", aes(col = Frucht)) +
-  theme(legend.position = "none") +
-  coord_sf(datum = 2056)
-```
-
-### ignore - (Annotate Trajectories from raster data)
-Das wäre das Vorgehen, wenn wir eine Interpolationsmethode wie IDW verwenden würden & das Resultat der Wetterdaten ein Raster wäre
-```{r}
-# hier muss das raster zuerst und dann der Punktlayer angegeben werden 
-# man kann auch ein buffer anwenden
-veg_extract <- extract(veg, wildschwein_BE)
-
-# mit buffer angewendet
-veg_extract <- extract(veg, wildschwein_buffer, fun = mean)
-
-str(veg_extract)
-
-# annotate raster results to original dataframe 
-wildschwein_BE$veg <- veg_extract$vegetationshoehe_LFI
-
-# overlay the two layers to look where they overlap 
-ggplot() +
-  # geom_sf(aes(fill = Frucht)) +
-  geom_sf(data = wildschwein_BE, alpha = 0.3, pch = ".", aes(col = veg)) +
-  theme(legend.position = "none") +
-  coord_sf(datum = 2056)
+# join rain and station name information for every trajectory point which is the nearest to the calulated stations 
+posmo_added <- left_join(posmo_cut, weather_posmo, by = c("stn" = "stn", "Datetime_round" = "time"))
 ```
 
 # Research Questions 
