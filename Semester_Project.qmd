@@ -41,6 +41,7 @@ posmo3 <- read_delim("posmo_data/a77bd18b-2615-4b03-802b-879bf3c93798_2023-01-01
 posmo4 <- read_delim("posmo_data/posmo - BuJa.csv")
 posmo5 <- read_delim("posmo_data/posmo.csv")
 
+# we exclude gps data, because of the inherent different nature of data structure of this dataset, which would make research work more complex
 # gps1 <- read_delim("posmo_data/gps_bike_walk_train.csv", ";")
 ```
 
@@ -413,52 +414,157 @@ posmo <- posmo |>
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
 - spatial: movement pattern (duration, distance etc. Literatur)
 - temporal: mean distance per weekend-day or workday-day
+### Temporal Analysis 
 ```{r}
-#Steplength rain Influence -------------------------------------
-#But we want mean of travelling distance ...  over all travel modes 
-mean_travldis_per_rain <- posmo |> 
+# 1. calculate mean travelling distance for rain and no rain --------------
+mean_dis_rain <- posmo |> 
   mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))|>  
   group_by(rain, date, dataset) |> 
   summarise(travldis_day = mean(steplength_m, na.rm = T))
 
-# visualize 
+# 2. visualise mean travelling distance for rain and no rain ------------
+# outliers up to 6000 m 
 ggplot() +
-  geom_boxplot(data = mean_travldis_per_rain, aes(rain, travldis_day)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") 
+  geom_boxplot(data = mean_dis_rain, aes(rain, travldis_day)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
+  ylim(0, 500)
 
-#What transport modes are there?
-posmo$transport_mode |> 
-  unique()
-# [1] NA         "Other1"   "Car"      "Walk"     "Train"    "Tram"     "Bike"     "Run"      "Bus"      "Horse"    "Airplane"
-#[12] "E_Bike"
 
-# Mittlere Distanz Fussverkehr ------------------------------------------------
-# 1. isolate all rows with travelmode "walk" ----------------------------------
+# 3. isolate all rows with travelmode "walk" & "run" ----------------------------------
 posmo_walk <- posmo |>
   subset(transport_mode == c("Walk", "Run")) #include "Run"?
 
-# Mittlere Distanz Veloverkehr -------------------------------------------------
-# 1. isolate all rows with travelmode "bike" ----------------------------------
-posmo_bike <- posmo |>
-  subset(transport_mode == "Bike")
-
-# Mittlere Distanz ÖV/Auto -------------------------------------------------
-# 1. isolate all rows with travelmode "car", "train" ----------------------------------
-posmo_car_train <- posmo |>
-  subset(transport_mode == c("Train", "Tram", "Car", "Bus"))#works!
-
-#Check for "Horse" and "Run", Frequency? Include/exclude?
-
-#But we want mean of travelling distance ...  for BIKE  
-mean_travldis_per_rain_bike <- posmo_bike |> 
+# 4. calculate mean travelling distance for rain and no rain --------------
+mean_dis_rain_walk <- posmo_walk |> 
   mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))|>  
   group_by(rain, date, dataset) |> 
   summarise(travldis_day = mean(steplength_m, na.rm = T))
 
-# visualize 
+# 5. visualise mean travelling distance for rain and no rain ------------
+# outliers 
 ggplot() +
-  geom_boxplot(data = mean_travldis_per_rain_bike, aes(rain, travldis_day)) +
-  labs(title = "mean travelled distance compared between rain/no rain for bike") 
+  geom_boxplot(data = mean_dis_rain_walk, aes(rain, travldis_day)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
+  ylim(0, 500)
+
+# 6. isolate all rows with travelmode "bike" ----------------------------------
+posmo_bike <- posmo |>
+  subset(transport_mode == "Bike")
+
+# 7. calculate mean travelling distance for rain and no rain --------------
+mean_dis_rain_bike <- posmo_bike |> 
+  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))|>  
+  group_by(rain, date, dataset) |> 
+  summarise(travldis_day = mean(steplength_m, na.rm = T))
+
+# 8. visualise mean travelling distance for rain and no rain ------------
+# outliers 
+ggplot() +
+  geom_boxplot(data = mean_dis_rain_bike, aes(rain, travldis_day)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
+  ylim(0, 500)
+
+# Mittlere Distanz ÖV/Auto -------------------------------------------------
+# 9. isolate all rows with travelmode "car", "train" ----------------------------------
+posmo_car_train <- posmo |>
+  subset(transport_mode == c("Train", "Tram", "Car", "Bus"))#works!
+
+# 10. calculate mean travelling distance for rain and no rain --------------
+mean_dis_rain_train <- posmo_car_train |> 
+  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))|>  
+  group_by(rain, date, dataset) |> 
+  summarise(travldis_day = mean(steplength_m, na.rm = T))
+
+# 11. visualise mean travelling distance for rain and no rain ------------
+# outliers 
+ggplot() +
+  geom_boxplot(data = mean_dis_rain_train, aes(rain, travldis_day)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes")
+```
+
+
+### Spatial Analysis 
+```{r}
+# 1. calculate velocity and distance (steplength) overall 
+posmo_speed <- posmo |>
+  group_by(rain, date, dataset) |>
+  mutate(timelag = as.numeric(difftime(lead(datetime), datetime, units = "secs"))) |>
+  mutate(steplength = sqrt((X-lead(X))^2+(Y-lead(Y))^2)) |>
+  mutate(speed = steplength/timelag)
+
+# 2. visualise 
+ggplot() +
+  geom_boxplot(data = posmo_speed, aes(rain, speed, fill = transport_mode)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
+  ylim(0, 300)
+
+# 3. subset calculated velocity with only "walk" and "run" values
+posmo_speed_walk <- posmo_speed |>
+  subset(transport_mode == c("Walk", "Run"))
+
+# 4. visualise 
+ggplot() +
+  geom_boxplot(data = posmo_speed_walk, aes(rain, speed, fill = dataset)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
+  ylim(0, 25)
+
+# 5. subset calculated velocity with only "bike" values
+posmo_speed_bike <- posmo_speed |>
+  subset(transport_mode == "Bike")
+
+# 6. visualise 
+ggplot() +
+  geom_boxplot(data = posmo_speed_bike, aes(rain, speed, fill = dataset)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes")
+```
+
+
+```{r}
+# 2. visualise distance
+ggplot() +
+  geom_boxplot(data = posmo_speed, aes(rain, steplength, fill = transport_mode)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
+  ylim(0, 300)
+
+
+# 4. visualise 
+ggplot() +
+  geom_boxplot(data = posmo_speed_walk, aes(rain, steplength, fill = transport_mode)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
+  ylim(0, 25)
+
+
+# 6. visualise 
+ggplot() +
+  geom_boxplot(data = posmo_speed_bike, aes(rain, steplength, fill = transport_mode)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
+  ylim(0, 300)
+```
+
+```{r}
+# 2. visualise distance
+ggplot() +
+  geom_boxplot(data = posmo_speed, aes(rain, timelag, fill = transport_mode)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
+  ylim(0, 300)
+
+
+# 4. visualise 
+ggplot() +
+  geom_boxplot(data = posmo_speed_walk, aes(rain, timelag, fill = transport_mode)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
+  ylim(0, 25)
+
+
+# 6. visualise 
+ggplot() +
+  geom_boxplot(data = posmo_speed_bike, aes(rain, timelag, fill = transport_mode)) +
+  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
+  ylim(0, 300)
+
+
+ggplot(posmo_speed, aes(datetime, speed, col = weekday)) +
+  geom_line
 ```
 
 ## Question 3: Miriam
