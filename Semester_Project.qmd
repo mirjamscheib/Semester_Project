@@ -33,6 +33,7 @@ library("plotly")
 ```
 
 ## OK - Load Data 
+we exclude gps data, because of the inherent different nature of data structure of this dataset, which would make research work more complex
 ```{r}
 # load all posmo data --------------------------------------- 
 posmo1 <- read_delim("posmo_data/steinm05_posmo_2023_04_10_2023_05_15.csv")
@@ -40,15 +41,11 @@ posmo2 <- read_delim("posmo_data/scheimir_posmo_2023-01-01T00_00_00+01_00-2023-0
 posmo3 <- read_delim("posmo_data/a77bd18b-2615-4b03-802b-879bf3c93798_2023-01-01T00-00-00_2023-05-13T23-59-59.csv")
 posmo4 <- read_delim("posmo_data/posmo - BuJa.csv")
 posmo5 <- read_delim("posmo_data/posmo.csv")
-
-# we exclude gps data, because of the inherent different nature of data structure of this dataset, which would make research work more complex
-# gps1 <- read_delim("posmo_data/gps_bike_walk_train.csv", ";")
 ```
 
 ## OK - Filter data/ create workable dataframe
 ```{r}
-# User anschreiben/umbenennen ---------------------------------------------
-# change user_id to names, so that we can read better who is who 
+# name users for easier data handling 
 posmo1 <- posmo1 |>  
   mutate(dataset = "posmo1")
 
@@ -65,7 +62,7 @@ posmo5 <- posmo5 |>
   mutate(dataset = "posmo5")
 
 
-# transform posmo data into an sf object ----------------------------------
+# transform posmo data into an sf object 
 posmo1 <- st_as_sf(posmo1, coords = c("lon_x","lat_y"), crs = 4326) |>
   st_transform(2056)
 
@@ -81,48 +78,38 @@ posmo4 <- st_as_sf(posmo4, coords = c("lon_x","lat_y"), crs = 4326) |>
 posmo5 <- st_as_sf(posmo5, coords = c("lon_x","lat_y"), crs = 4326) |>
   st_transform(2056)
 
-# bind all data together, create a single dataframe -------------------------
+# bind all data together, create a single dataframe 
 posmo <- rbind(posmo1, posmo2, posmo3, posmo4, posmo5)
 
-# Datetime in POSIXct format umwandeln -------------------------------------
-# Sonstige Datenformate anpassen bei Bedarf --------------------------------
-posmo <- posmo |>
-  mutate(datetime = as.POSIXct(datetime))
-        # weekday = as.factor(weekday),   # evt nicht nötig die character in factor umzuwandeln
-        # transport_mode = as.factor(transport_mode),
-         #dataset = as.factor(dataset))
-```
-
-
-## OK - Data consistency overview and removal of inconsistent datasets
-```{r}
-# add better user_id with information which dataset it is
-posmo$user_id |> 
-  unique()
-#[1] "71da47e1-a7a7-4e3e-a77a-25a99294f52a" "57a21dc5-838a-4d5c-b420-608f49e33430" "a77bd18b-2615-4b03-802b-879bf3c93798"
-#[4] "4bcef553-b12c-4d77-9728-097fb8af98d3" "1af6fc8e-273d-4889-894b-5dadadd70a01"
-
-#View data consistency
-ggplot(posmo, aes(datetime, dataset))+
-         geom_point()
-# -> User4 will be removed!!
-
+# remore user_id column, because the column dataset has unique/simple names for every user 
 posmo <- posmo |>
   subset(dataset != "posmo4") |>
   select(-user_id)
 
+# transform datetime into POSIXct format 
+posmo <- posmo |>
+  mutate(datetime = as.POSIXct(datetime))
+```
 
-#Kontrollieren:
+
+## !!! posmo4 removing?? Data consistency overview and removal of inconsistent datasets
+```{r}
+# look at data consistency
+ggplot(posmo, aes(datetime, dataset))+
+         geom_point()
+
+# -> posmo4 will be removed because of inconsistent tracking times? 
+
+# control if posmo4 is removed 
 posmo$dataset |> 
   unique()
-#posmo4 successfully removed
-
+# -> posmo4 successfully removed
 ```
 
 ### OK - remove outliers 
 Ich habe in den Daten gesehen, dass sogar der Transport mode Airplane drin ist. Diesen habe ich am Schluss hier auch noch entfernt. Ich denke die Begrenzung anhand der schweizer grenze ist aber schon ok sonst :).
 ```{r}
-# delete trajectory data outside of switzerland (= delete outliers; norway & france) ------------------------------------------------------------------
+# delete trajectory data outside of switzerland (= delete outliers; norway & france) 
 # plot data to look where outliers are 
 tmap_mode("view")
 
@@ -147,31 +134,30 @@ tm_shape(posmo4) +
 tm_shape(posmo5) +
   tm_dots()
 
-# load swiss boundary 
+# load swiss boundary for intersection 
 swiss <- read_sf("data/schweiz.gpkg")
 
-# cut layer with swiss boarder
-# result_layer <- st_intersection(posmo, swiss)
+# intersect posmo data with swiss boarder
 posmo_cut <- st_intersection(posmo, swiss)
 
-# now outliers are out 
-tm_shape(posmo_cut) +
- tm_dots()
-
-# remove transport_mode Airplane because it is part of the outliers and transport speed is far to high 
+# remove transport_mode "Airplane" because it is part of the outliers and transport speed is far to high 
 posmo_cut <- posmo_cut |>
   subset(transport_mode != "Airplane")
 
-# save cleaned dataset in an .gpkg file
-st_write(posmo_cut, "posmo_data/posmo_cut2.gpkg")
+# control if outliers are removed 
+tm_shape(posmo_cut) +
+ tm_dots()
+
+# save cleaned dataset in an .gpkg file to shorten calculation time for subsequent analysing steps 
+st_write(posmo_cut, "posmo_data/posmo_cut.gpkg")
 ```
 
 
 ## OK - Add convenience variables 
 ### OK - day/night, weekend/weekday
 ```{r}
-# load cleaned data set ------------------------------------
-posmo <- read_sf("posmo_data/posmo_cut2.gpkg")
+# load cleaned data set 
+posmo <- read_sf("posmo_data/posmo_cut.gpkg")
 
 
 # Unterscheidung zwischen Wochentag und Wochenende (Sa-So: Weekend, Mo-Fr: Workday) -----------------------------------------------------------------
@@ -269,10 +255,10 @@ posmo_coordinates <- st_coordinates(posmo_added)
 posmo_sep <- cbind(posmo_added, posmo_coordinates)
 
 # save clean data in dataframe as .gpkg
-st_write(posmo_added, "posmo_data/posmo_end1.gpkg")
+st_write(posmo_added, "posmo_data/posmo_clean.gpkg")
 
 # save clean data in .csv 
-write_csv(posmo_sep, "posmo_data/posmo_end1.csv")
+write_csv(posmo_sep, "posmo_data/posmo_clean.csv")
 ```
 
 # Research Questions 
@@ -282,7 +268,7 @@ Does the day of the week (weekend vs. workday) have an impact on spatio-temporal
 - temporal: mean distance per weekend-day or workday-day DONE
 ```{r}
 # load clean data 
-posmo <- read_sf("posmo_data/posmo_end1.gpkg")
+posmo <- read_sf("posmo_data/posmo_clean.gpkg")
 # Mittlere Distanz gesamt ausrechnen (wie geht das pro Tag?) -------------------------
 # Convert timestamp to date format
 posmo$date <- as.Date(posmo$datetime)
@@ -415,6 +401,17 @@ Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns
 - spatial: movement pattern (duration, distance etc. Literatur)
 - temporal: mean distance per weekend-day or workday-day
 ### Temporal Analysis 
+```{r}
+# load clean data 
+posmo <- read_sf("posmo_data/posmo_clean.gpkg")
+
+# we need the coordinates in separates columns to calculate eucl. distance
+posmo_coordinates <- st_coordinates(posmo)
+
+# add the separated coordinates to the posmo variable 
+posmo <- cbind(posmo, posmo_coordinates)
+```
+
 ```{r}
 # 1. calculate mean travelling distance for rain and no rain --------------
 mean_dis_rain <- posmo |> 
@@ -561,10 +558,26 @@ ggplot() +
   geom_boxplot(data = posmo_speed_bike, aes(rain, timelag, fill = transport_mode)) +
   labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
   ylim(0, 300)
+```
 
 
-ggplot(posmo_speed, aes(datetime, speed, col = weekday)) +
-  geom_line
+```{r}
+# round datetime to 1h 
+posmo_round <- posmo |>
+  mutate(Datetime_round = lubridate::round_date(datetime, "1h")) |>
+  mutate(time_round = format(Datetime_round, format = "%H:%M:%S", tz = "UTC")) # Add convenience variable with only time 
+
+
+
+posmo_test <- posmo_round |>
+  group_by(time_round, dataset, weekday) |>
+  mutate(steplength = sqrt((X-lead(X))^2+(Y-lead(Y))^2)) |>
+  summarise(mean_dis = mean(steplength, na.rm = TRUE))
+
+
+ggplot(posmo_test, aes(time_round, mean_dis, col = weekday)) +
+  geom_point() +
+  geom_line()
 ```
 
 ## Question 3: Miriam
@@ -572,6 +585,31 @@ Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man e
 Durchschnittliche Reisen pro Tag? 
 
 - gleicher Plot wie im Best practice example: linienplot mit weekdays (pro weekday 1 linie)
+```{r}
+# Habe hier schon mal versucht den Plot vom Best Practice example zu erstellen 
+# Geht wohl doch nicht so einfach. Meine Vorgehensweise: ich wollte die mittlere Distanz pro stunde am Tag und wochentag ausrechnen damit dann für alle user jeweils der durchschnitt berechnet wird wie gross die tavel-distance zu einer bestimmten stunde ist 
+# round datetime to 1h 
+posmo_round <- posmo |>
+  mutate(Datetime_round = lubridate::round_date(datetime, "1h")) |>
+  mutate(time_round = format(Datetime_round, format = "%H:%M:%S", tz = "UTC")) # Add convenience variable with only time 
+
+
+# ich glaube hier liegt wahrsch der Fehler. Der Datensatz den wir brauchen um den Linienplot zu machen bräuchte folgendes: Für jede volle Stunde für einen ganzen Tag, also 24h (z.B. 8 Uhr, 10 Uhr etc.) muss ein Wert der mittleren Traveldistanz für jeden Wochentag vorliegen. 
+# Bsp. für 10 Uhr haben wir dann 5 Einträge (für Mo-Fr je einen) und so weiter für jede Stunde
+
+# Ich habe das Gefühl irgendwie der Datensatz stimmt eig. schon aber checke nicht woran es liegt
+posmo_test <- posmo_round |>
+  group_by(time_round, weekday) |>
+  mutate(steplength = sqrt((X-lead(X))^2+(Y-lead(Y))^2)) |>
+  summarise(mean_dis = mean(steplength, na.rm = TRUE))
+
+
+# im plot sieht es dann aber eben nicht so aus... und ich weiss nicht genau woran es liegt
+ggplot(posmo_test, aes(time_round, mean_dis, col = weekday)) +
+  geom_point() +
+  geom_line()
+```
+
 ```{r}
 # function to retrieve the statistics for a specific day
 # number is the number of mondays (e.g.) in the data set. Monday appears 14 times, the rest 13 times
