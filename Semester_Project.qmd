@@ -544,6 +544,7 @@ Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns
 - spatial: movement pattern (duration, distance etc. Literatur)
 - temporal: mean distance per weekend-day or workday-day
 ### Temporal Analysis 
+Miriam: Du kannst ungefähr die gleichen Sachen machen, allerdings wenn du magst kannst du schon die Plots aussortieren (zumindest bei dir) die wir nicht brauchen und die Plots schön gestalten. Habe in keinem Plot die Titel angepasst, hoffe du verstehst es trotzdem. :) 
 ```{r}
 # load clean data 
 posmo <- read_sf("posmo_data/posmo_clean.gpkg")
