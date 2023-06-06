@@ -279,7 +279,7 @@ write_csv(posmo_sep, "posmo_data/posmo_clean.csv")
 # Research Questions 
 ## Question 1: Miriam 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns?
-- spatial: movement pattern -> mean duration per weekday/workday
+- spatial: movement pattern -> mean trip duration/distance per weekday/workday - DONE
 - temporal: mean distance per weekend-day or workday-day -  DONE
 ```{r}
 # load clean data 
@@ -449,19 +449,97 @@ unique(posmo$segment_id) #wie erwartet haben wir uuunzählige Segmente
 
 For mean duration of trips per weekday/weekend-day remove static segments and segments with duration < 5min
 ```{r}
+#only movement segments
 posmo_trips <- posmo |>
-    filter(!static) |> 
+    filter(!static)
     
+#calculate trip duration and trip distance
+posmo_trips <- posmo_trips |>
+  group_by(segment_id) |> 
+  mutate(trip_duration = sum(diff_s), trip_dis = sum(steplength_m))
+
+#remove trips that are shorter than 10min = 600s
+posmo_trips <- posmo_trips |>
+  subset(trip_duration > 600)
+
+```
+
+Calculate mean duration and mean dis of trips per day
+```{r}
+#mean trip duration looks odd, need to check that (!!)
+posmo_trips |>
+  group_by(segment_id) |>
+  ggplot() +
+  geom_boxplot(aes(day_week, trip_duration/60)) +
+  labs(title = "mean trip duration compared between weekend/weekday")
+  
+```
 
 
+```{r}
+#mean trip distance compared between weekend/weekday seems OK
+posmo_trips |>
+  group_by(segment_id) |>
+  ggplot() +
+  geom_boxplot(aes(day_week, trip_dis)) +
+  labs(title = "mean trip distance compared between weekend/weekday")
+  
 
+```
+## Question 2: Miriam
+Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
+Durchschnittliche Reisen pro Tag? 
+
+- gleicher Plot wie im Best practice example: linienplot mit weekdays (pro weekday 1 linie)
+```{r}
+# Habe hier schon mal versucht den Plot vom Best Practice example zu erstellen 
+# Geht wohl doch nicht so einfach. Meine Vorgehensweise: ich wollte die mittlere Distanz pro stunde am Tag und wochentag ausrechnen damit dann für alle user jeweils der durchschnitt berechnet wird wie gross die tavel-distance zu einer bestimmten stunde ist 
+# round datetime to 1h 
+posmo_round <- posmo |>
+  mutate(Datetime_round = lubridate::round_date(datetime, "1h")) |>
+  mutate(time_round = format(Datetime_round, format = "%H:%M:%S", tz = "UTC")) # Add convenience variable with only time 
+
+
+# ich glaube hier liegt wahrsch der Fehler. Der Datensatz den wir brauchen um den Linienplot zu machen bräuchte folgendes: Für jede volle Stunde für einen ganzen Tag, also 24h (z.B. 8 Uhr, 10 Uhr etc.) muss ein Wert der mittleren Traveldistanz für jeden Wochentag vorliegen. 
+# Bsp. für 10 Uhr haben wir dann 5 Einträge (für Mo-Fr je einen) und so weiter für jede Stunde
+
+# Ich habe das Gefühl irgendwie der Datensatz stimmt eig. schon aber checke nicht woran es liegt
+posmo_test <- posmo_round |>
+  group_by(time_round, weekday) |>
+  mutate(steplength = sqrt((X-lead(X))^2+(Y-lead(Y))^2)) |>
+  summarise(mean_dis = mean(steplength, na.rm = TRUE))
+
+
+# im plot sieht es dann aber eben nicht so aus... und ich weiss nicht genau woran es liegt
+ggplot(posmo_test, aes(time_round, mean_dis, col = weekday)) +
+  geom_point() +
+  geom_line()
+```
+
+```{r}
+# function to retrieve the statistics for a specific day
+# number is the number of mondays (e.g.) in the data set. Monday appears 14 times, the rest 13 times
+day_hour <- function(dataset = posmo, day, number){ 
+  day_stat <- dataset %>% 
+    filter(weekday == day) %>% 
+    group_by(start_hour) %>% 
+    summarize(count = n()) %>% 
+    mutate(count = count/number)
+  return (day_stat) 
+}
+monday <-day_hour(day = "Montag", number = 14)
+tuesday <- day_hour(day = "Dienstag", number = 13)
+wednesday <- day_hour(day = "Mittwoch", number = 13)
+thursday <- day_hour(day = "Donnerstag", number = 13)
+friday <- day_hour(day = "Freitag", number = 13)
+saturday <- day_hour(day = "Samstag", number = 13)
+sunday <- day_hour(day = "Sonntag", number = 13)
 ```
 
 
 
 
-
-## Question 2: Mirjam 
+## Question 3: Mirjam 
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
 - spatial: movement pattern (duration, distance etc. Literatur)
 - temporal: mean distance per weekend-day or workday-day
@@ -643,56 +721,6 @@ posmo_test <- posmo_round |>
 ggplot(posmo_test, aes(time_round, mean_dis, col = weekday)) +
   geom_point() +
   geom_line()
-```
-
-## Question 3: Miriam
-Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
-Durchschnittliche Reisen pro Tag? 
-
-- gleicher Plot wie im Best practice example: linienplot mit weekdays (pro weekday 1 linie)
-```{r}
-# Habe hier schon mal versucht den Plot vom Best Practice example zu erstellen 
-# Geht wohl doch nicht so einfach. Meine Vorgehensweise: ich wollte die mittlere Distanz pro stunde am Tag und wochentag ausrechnen damit dann für alle user jeweils der durchschnitt berechnet wird wie gross die tavel-distance zu einer bestimmten stunde ist 
-# round datetime to 1h 
-posmo_round <- posmo |>
-  mutate(Datetime_round = lubridate::round_date(datetime, "1h")) |>
-  mutate(time_round = format(Datetime_round, format = "%H:%M:%S", tz = "UTC")) # Add convenience variable with only time 
-
-
-# ich glaube hier liegt wahrsch der Fehler. Der Datensatz den wir brauchen um den Linienplot zu machen bräuchte folgendes: Für jede volle Stunde für einen ganzen Tag, also 24h (z.B. 8 Uhr, 10 Uhr etc.) muss ein Wert der mittleren Traveldistanz für jeden Wochentag vorliegen. 
-# Bsp. für 10 Uhr haben wir dann 5 Einträge (für Mo-Fr je einen) und so weiter für jede Stunde
-
-# Ich habe das Gefühl irgendwie der Datensatz stimmt eig. schon aber checke nicht woran es liegt
-posmo_test <- posmo_round |>
-  group_by(time_round, weekday) |>
-  mutate(steplength = sqrt((X-lead(X))^2+(Y-lead(Y))^2)) |>
-  summarise(mean_dis = mean(steplength, na.rm = TRUE))
-
-
-# im plot sieht es dann aber eben nicht so aus... und ich weiss nicht genau woran es liegt
-ggplot(posmo_test, aes(time_round, mean_dis, col = weekday)) +
-  geom_point() +
-  geom_line()
-```
-
-```{r}
-# function to retrieve the statistics for a specific day
-# number is the number of mondays (e.g.) in the data set. Monday appears 14 times, the rest 13 times
-day_hour <- function(dataset = posmo, day, number){ 
-  day_stat <- dataset %>% 
-    filter(weekday == day) %>% 
-    group_by(start_hour) %>% 
-    summarize(count = n()) %>% 
-    mutate(count = count/number)
-  return (day_stat) 
-}
-monday <-day_hour(day = "Montag", number = 14)
-tuesday <- day_hour(day = "Dienstag", number = 13)
-wednesday <- day_hour(day = "Mittwoch", number = 13)
-thursday <- day_hour(day = "Donnerstag", number = 13)
-friday <- day_hour(day = "Freitag", number = 13)
-saturday <- day_hour(day = "Samstag", number = 13)
-sunday <- day_hour(day = "Sonntag", number = 13)
 ```
 
 
