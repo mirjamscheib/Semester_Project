@@ -195,13 +195,28 @@ posmo <- posmo |>
 
 ```
 
-## Cut Dataset in Time
+## !! Cut Dataset in Time
 Have an overview of the time span of the different data sets
 ```{r}
-ggplot(posmo, aes(datetime, USER_ID))+
+ggplot(posmo, aes(datetime, dataset))+
          geom_point()
 ```
+Cut dataset
+```{r}
+unique(posmo$date)
 
+posmo_timecut <- posmo |>
+  subset(date != c("2023-04-11", "2023-04-12", "2023-04-14", "2023-04-10", "2023-04-13", "2023-04-15", "2023-04-17", "2023-04-20", "2023-04-21", "2023-04-19", "2023-04-01",  "2023-04-02",  "2023-04-03", "2023-04-04", "2023-04-05", "2023-04-06" ,"2023-04-07", "2023-04-08", "2023-04-09", "2023-04-16", "2023-04-18", "2023-05-14"))
+
+unique(posmo_timecut$date)
+
+```
+
+```{r}
+ggplot(posmo_timecut, aes(date, dataset))+
+         geom_point()
+```
+Das macht irgendwie keinen Sinn, bitte auch mal anschauen.. 
 
 ### OK - rain/no rain Nils
 Bedeutung Spalten in weather: 
@@ -264,8 +279,8 @@ write_csv(posmo_sep, "posmo_data/posmo_clean.csv")
 # Research Questions 
 ## Question 1: Miriam 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns?
-- spatial: movement pattern (duration, distance etc. Literatur)
-- temporal: mean distance per weekend-day or workday-day DONE
+- spatial: movement pattern -> mean duration per weekday/workday
+- temporal: mean distance per weekend-day or workday-day -  DONE
 ```{r}
 # load clean data 
 posmo <- read_sf("posmo_data/posmo_clean.gpkg")
@@ -281,7 +296,7 @@ posmo$date <- as.Date(posmo$datetime)
 # posmo_sf_transformed <- st_transform(posmo_sf, crs = "+init=EPSG:2056") nicht nötig weil schon transofrmiert 
 ```
 
-Calculate timelag, steplength and speed for posmo 
+Calculate timelag, steplength and speed for posmo -> temporal
 
 In general first:
 ```{r}
@@ -318,7 +333,7 @@ mean_travldis_per_weekday <- mean_travldis_per_date |>
   summarise(travldis_weekday = mean(travldis_day))
 #was auch immer die Geometry noch da macht..  
 
-# visualize 
+# visualize mean travelled distance per date
 ggplot() +
   geom_boxplot(data = mean_travldis_per_date, aes(dataset, travldis_day)) +
   labs(title = "mean travelled distance per date")
@@ -338,11 +353,12 @@ mean_travldis_per_date_week <- posmo |>
   group_by(day_week, date, dataset) |> 
   summarise(travldis_day = mean(steplength_m, na.rm = T))
 
-# visualize 
+# visualize mean travelled distance compared between weekend/weekday
 ggplot() +
   geom_boxplot(data = mean_travldis_per_date_week, aes(day_week, travldis_day)) +
   labs(title = "mean travelled distance compared between weekend/weekday")
 ```
+
 Same for posmo subset of "walk"
 ```{r}
 #Timelag 
@@ -371,22 +387,20 @@ mean_travldis_per_weekday <- mean_travldis_per_date |>
 #die Distanzen pro Tag sind sehr hoch, das finde ich speziell.. stimmt das wirklich? Liegt es daran, dass wir nur wenige Personen haben? Gab es viele Fehlerfassungen der App? 
 ```
 
-
-
-
+spatial: movement pattern -> mean duration per weekday/workday
 ```{r}
-### FROM VORLESUNG ------------------------------------------------------
+### Calculate temporal windows ------------------------------------------------------
 # calculates time taken from each step to the next 
 # n_plus2 calculates an offset of 2 time steps
 posmo <- posmo |>
   mutate(
-    n_plus1 = sqrt((lead(X) - X)^2 + (lead(Y) - Y)^2), # distance to pos +15 minutes
-    n_plus2 = sqrt((lead(X, 2) - X)^2 + (lead(Y, 2) - Y)^2), # distance to pos +30 minutes
-    n_minus1 = sqrt((lag(X) - X)^2 + (lag(Y) - Y)^2), # distance to pos -30 minutes
-    n_minus2 = sqrt((lag(X, 2) - X)^2 + (lag(Y, 2) - Y)^2) # distance to pos -15 minutes
+    n_plus1 = sqrt((lead(X) - X)^2 + (lead(Y) - Y)^2), # distance to pos + 10 seconds
+    n_plus2 = sqrt((lead(X, 2) - X)^2 + (lead(Y, 2) - Y)^2), # distance to pos +20 seconds
+    n_minus1 = sqrt((lag(X) - X)^2 + (lag(Y) - Y)^2), # distance to pos -10 seconds
+    n_minus2 = sqrt((lag(X, 2) - X)^2 + (lag(Y, 2) - Y)^2) # distance to pos -20 seconds
   )
 
-# ungroup() because when we apply when we apply rowwise() each row is a grouped individually which we don't want. 
+# ungroup() because when we apply rowwise() each row is a grouped individually which we don't want. 
 posmo <- posmo |>
   rowwise()|>
   mutate(
@@ -394,6 +408,57 @@ posmo <- posmo |>
   ) |>
   ungroup()
 ```
+
+Define static, than remove "static point"
+```{r}
+posmo <- posmo |>
+    ungroup() |>
+    mutate(static = stepMean < mean(stepMean, na.rm = TRUE))
+
+posmo_nostatic <- posmo |>
+    filter(!static)
+
+posmo_nostatic |>
+    ggplot(aes(X, Y)) +
+    geom_path() +
+    geom_point() +
+    coord_fixed() +
+    theme(legend.position = "bottom")
+
+tmap_mode("view")
+
+tm_shape(posmo_nostatic) +
+  tm_dots()
+
+```
+Segment-based analysis
+Asign segmet IDs and use them to remove short segments and calculate segment (trip) duration
+```{r}
+rle_id <- function(vec) {
+    x <- rle(vec)$lengths
+    as.factor(rep(seq_along(x), times = x))
+}
+
+posmo <- posmo |>
+    mutate(segment_id = rle_id(static))
+
+head(posmo)
+unique(posmo$segment_id) #wie erwartet haben wir uuunzählige Segmente
+
+```
+
+For mean duration of trips per weekday/weekend-day remove static segments and segments with duration < 5min
+```{r}
+posmo_trips <- posmo |>
+    filter(!static) |> 
+    
+
+
+
+```
+
+
+
 
 
 ## Question 2: Mirjam 
