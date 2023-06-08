@@ -531,7 +531,7 @@ posmo_hours |>
 
 
 
-Lineplot with hours an weekdays, number of trips
+Lineplot with hours and weekdays, number of trips
 ```{r}
 posmo_hours |>
   group_by(segment_id) |>
@@ -557,10 +557,26 @@ View(posmo_hoursx)
 
 ```
 
+Same with mean travel distance (not trip distance) per hours
+```{r}
+mean_travldis_per_hour <- posmo_hours |> 
+  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))|>  
+  group_by(day_week, time_round, weekday) |> 
+  summarise(travldis_hour = mean(steplength_m, na.rm = T))
 
-## Question 2: Miriam (Pröbeln von Mirj)
-Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
-Durchschnittliche Anzahl Reisen pro Tag? 
+
+
+mean_travldis_per_hour |>
+  ggplot() +
+  geom_boxplot(aes(time_round, travldis_hour, colour = weekday)) +
+  labs(title = "mean distance per hour of the day")
+
+#Ich verstehe nicht, was ich da machen muss, dass ich so einen tollen Linienplot erhalte... die Boxplots müssten ja nurnoch mit Linien verbunden sein, aber so eine Funktion gibt es irgendwie nicht
+```
+
+
+
+Ansatz von Mirj:
 
 - gleicher Plot wie im Best practice example: linienplot mit weekdays (pro weekday 1 linie)
 ```{r}
@@ -569,7 +585,7 @@ Durchschnittliche Anzahl Reisen pro Tag?
 # round datetime to 1h 
 posmo_round <- posmo |>
   mutate(Datetime_round = lubridate::round_date(datetime, "1h")) |>
-  mutate(time_round = format(Datetime_round, format = "%H:%M:%S", tz = "UTC")) # Add convenience variable with only time 
+  mutate(time_round = format(Datetime_round, format = "%H", tz = "UTC")) # Add convenience variable with only time 
 
 
 # ich glaube hier liegt wahrsch der Fehler. Der Datensatz den wir brauchen um den Linienplot zu machen bräuchte folgendes: Für jede volle Stunde für einen ganzen Tag, also 24h (z.B. 8 Uhr, 10 Uhr etc.) muss ein Wert der mittleren Traveldistanz für jeden Wochentag vorliegen. 
@@ -583,10 +599,11 @@ posmo_test <- posmo_round |>
 
 
 # im plot sieht es dann aber eben nicht so aus... und ich weiss nicht genau woran es liegt
-ggplot(posmo_test, aes(time_round, mean_dis, col = weekday)) +
-  geom_point() +
+ggplot(posmo_test, aes(time_round, log(mean_dis), col = weekday)) +
+  geom_point()+
   geom_line()
 
+#Wieso funktioniert geom_line nicht? Im Internet steht der Code genauso und es gibt eine Line... 
 ```
 
 
