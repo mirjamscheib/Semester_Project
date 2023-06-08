@@ -30,6 +30,7 @@ library("dplyr")
 library("SimilarityMeasures")
 library("lubridate")
 library("plotly")
+
 ```
 
 ## OK - Load Data 
@@ -335,7 +336,7 @@ mean_travldis_per_weekday <- mean_travldis_per_date |>
 
 # visualize mean travelled distance per date
 ggplot() +
-  geom_boxplot(data = mean_travldis_per_date, aes(dataset, travldis_day)) +
+  geom_boxplot(data = mean_travldis_per_date, aes(dataset, log(travldis_day)), notch = T) +
   labs(title = "mean travelled distance per date")
 
 
@@ -355,8 +356,9 @@ mean_travldis_per_date_week <- posmo |>
 
 # visualize mean travelled distance compared between weekend/weekday
 ggplot() +
-  geom_boxplot(data = mean_travldis_per_date_week, aes(day_week, travldis_day)) +
+  geom_boxplot(data = mean_travldis_per_date_week, aes(day_week, log(travldis_day))) +
   labs(title = "mean travelled distance compared between weekend/weekday")
+
 ```
 
 Same for posmo subset of "walk"
@@ -387,7 +389,7 @@ mean_travldis_per_weekday <- mean_travldis_per_date |>
 #die Distanzen pro Tag sind sehr hoch, das finde ich speziell.. stimmt das wirklich? Liegt es daran, dass wir nur wenige Personen haben? Gab es viele Fehlerfassungen der App? 
 ```
 
-spatial: movement pattern -> mean duration per weekday/workday
+SPATIAL: movement pattern -> mean duration per weekday/workday
 ```{r}
 ### Calculate temporal windows ------------------------------------------------------
 # calculates time taken from each step to the next 
@@ -471,8 +473,8 @@ Calculate mean duration and mean dis of trips per day
 posmo_trips |>
   group_by(segment_id) |>
   ggplot() +
-  geom_boxplot(aes(day_week, trip_duration/60)) +
-  labs(title = "mean trip duration compared between weekend/weekday")
+  geom_boxplot(aes(day_week, log(trip_duration/60))) +
+  labs(title = "mean trip duration [min] compared between weekend/weekday")
   
 ```
 
@@ -491,16 +493,16 @@ Mean trip distance per hour of the day
 ```{r} 
 posmo_hours <- posmo_trips |>
   mutate(Datetime_round = lubridate::round_date(datetime, "1h")) |>
-  mutate(time_round = format(Datetime_round, format = "%H:%M:%S", tz = "UTC")) # Add convenience variable with only time 
+  mutate(time_round = format(Datetime_round, format = "%H", tz = "UTC")) # Add convenience variable with only time 
 
 
 posmo_hours |>
   group_by(segment_id) |>
   ggplot() +
-  geom_boxplot(aes(time_round, trip_dis)) +
-  coord_polar("x") +
+  geom_boxplot(aes(time_round, log(trip_dis))) +
   labs(title = "mean trip distance per hour of the day")
 
+#Wir haben zu wenig Daten für so einen Plot scheint es, die Boxplots sehen nicht so "gesund" aus
 ```
 
 ```{r}
@@ -511,21 +513,38 @@ posmo_hours |>
   coord_polar("x") +
   labs(title = "mean trip distance per hour of the day")
 
+#Tja, da niemand in der Nacht nur einmal unterwegs war, haben wir ab 21Uhr bis 04 Uhr Morgens absolut keine Daten...
+
 ```
+
+## Question 2: Miriam
+Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
+Durchschnittliche Anzahl Reisen pro Tag? 
+
+```{r}
+posmo_hours |>
+  group_by(segment_id) |>
+  ggplot() +
+  geom_bar(aes(trip_dis, colour = time_round)) +
+  labs(title = "mean trip distance per hour of the day")
+```
+
+
 
 Lineplot with hours an weekdays, number of trips
 ```{r}
 posmo_hours |>
   group_by(segment_id) |>
   ggplot() +
-  geom_line(aes(time_round, colour = weekday)) +
+  geom_line(aes(time_round, trip_dis, colour = weekday)) +
   labs(title = "mean trip distance per hour of the day")
+
 ```
 
 
-## Question 2: Miriam
+## Question 2: Miriam (Pröbeln von Mirj)
 Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
-Durchschnittliche Reisen pro Tag? 
+Durchschnittliche Anzahl Reisen pro Tag? 
 
 - gleicher Plot wie im Best practice example: linienplot mit weekdays (pro weekday 1 linie)
 ```{r}
