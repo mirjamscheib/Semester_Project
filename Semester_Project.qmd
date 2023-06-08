@@ -541,6 +541,22 @@ posmo_hours |>
 
 ```
 
+Average number of trips per day
+```{r}
+posmo_hoursx <- posmo_hours |>
+  mutate(segment_name = as.character(segment_id)) |> 
+  group_by(date, segment_name) |>
+  add_count(segment_name)
+
+
+#num_trips = Anzahl verschiedener segment_ids  pro date
+#funktionier aber nicht mit einem Factor, es zählt nicht die Anzahl verschiedenen Factors pro Tag...
+?count()
+
+View(posmo_hoursx)
+
+```
+
 
 ## Question 2: Miriam (Pröbeln von Mirj)
 Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
@@ -572,29 +588,6 @@ ggplot(posmo_test, aes(time_round, mean_dis, col = weekday)) +
   geom_line()
 
 ```
-
-
-```{r}
-# function to retrieve the statistics for a specific day
-# number is the number of mondays (e.g.) in the data set. Monday appears 14 times, the rest 13 times
-day_hour <- function(dataset = posmo, day, number){ 
-  day_stat <- dataset %>% 
-    filter(weekday == day) %>% 
-    group_by(start_hour) %>% 
-    summarize(count = n()) %>% 
-    mutate(count = count/number)
-  return (day_stat) 
-}
-monday <-day_hour(day = "Montag", number = 14)
-tuesday <- day_hour(day = "Dienstag", number = 13)
-wednesday <- day_hour(day = "Mittwoch", number = 13)
-thursday <- day_hour(day = "Donnerstag", number = 13)
-friday <- day_hour(day = "Freitag", number = 13)
-saturday <- day_hour(day = "Samstag", number = 13)
-sunday <- day_hour(day = "Sonntag", number = 13)
-```
-
-
 
 
 ## Question 3: Mirjam 
