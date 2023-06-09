@@ -106,14 +106,11 @@ posmo$dataset |>
 # -> posmo4 successfully removed
 ```
 
-### OK - remove outliers 
-Ich habe in den Daten gesehen, dass sogar der Transport mode Airplane drin ist. Diesen habe ich am Schluss hier auch noch entfernt. Ich denke die Begrenzung anhand der schweizer grenze ist aber schon ok sonst :).
+### OK - Remove outliers 
 ```{r}
-# delete trajectory data outside of switzerland (= delete outliers; norway & france) 
-# plot data to look where outliers are 
+# delete trajectory data outside of switzerland (= delete outliers; norway & france): look at single posmo data to determine outliers 
 tmap_mode("view")
 
-# look at single posmo data to determine outliers 
 # outlier - norway
 tm_shape(posmo1) +
   tm_dots()
@@ -140,7 +137,7 @@ swiss <- read_sf("data/schweiz.gpkg")
 # intersect posmo data with swiss boarder
 posmo_cut <- st_intersection(posmo, swiss)
 
-# remove transport_mode "Airplane" because it is part of the outliers and transport speed is far to high 
+# remove transport_mode "Airplane" because it is part of the outliers 
 posmo_cut <- posmo_cut |>
   subset(transport_mode != "Airplane")
 
@@ -160,11 +157,11 @@ st_write(posmo_cut, "posmo_data/posmo_cut.gpkg")
 posmo <- read_sf("posmo_data/posmo_cut.gpkg")
 
 
-# Unterscheidung zwischen Wochentag und Wochenende (Sa-So: Weekend, Mo-Fr: Workday) -----------------------------------------------------------------
+# Add convenience variable weekend vs. workday (Sa-So: Weekend, Mo-Fr: Workday) 
 posmo <- posmo |>
   mutate(day_week = ifelse(weekday %in% c("Sat", "Sun"), "weekend", "weekday"))
 
-# Unterscheidung Tag, Nacht (Tag: 06:00 – 22:00, Nacht: 22:00 – 06:00?) --------------
+# Add concenience variables day vs. night (Day: 06:00 – 22:00, Night: 22:00 – 06:00) 
 # Define the start and end time ranges
 start_time <- as.POSIXct("06:00:00", format = "%H:%M:%S", tz = "UTC")
 end_time <- as.POSIXct("22:00:00", format = "%H:%M:%S", tz = "UTC")
@@ -173,27 +170,65 @@ end_time <- as.POSIXct("22:00:00", format = "%H:%M:%S", tz = "UTC")
 start_time <- format(start_time, format = "%H:%M:%S")
 end_time <- format(end_time, format = "%H:%M:%S")
 
-# create convenience variables day/night -------------------------------------------
+# create convenience variables day vs. night
 posmo <- posmo |>
   mutate(time = format(datetime, format = "%H:%M:%S", tz = "UTC"), # Add convenience variable with only time 
          day_night = ifelse(time >= start_time & time <= end_time, "night", "day"))
 
 
-# proof if convenience variables worked ------------------------------------
+# proof if convenience variables worked 
 unique(posmo$day_night)
 unique(posmo$day_week)
 
-# we need the coordinates in separates columns to calculate eucl. distance
-# posmo_coordinates <- st_coordinates(posmo)
-
-# add the separated coordinates to the posmo variable 
-# posmo <- cbind(posmo, posmo_coordinates)
-
-#add date only
+# add convenience variable with date only (without time)
 posmo <- posmo |> 
   mutate(date = lubridate::date(datetime))
-
 ```
+
+### OK - rain/no rain 
+Meaning of the columns in weather: 
+- tre200s0 = Air temperature 2 m above ground (momentary value in °C)
+- rco150z0 = Precipitation duration in ten-minute sum 
+- sre00z0 = Sunshine duration ten-minute sum
+
+```{r}
+# load all weather and legend data 
+legend <- read_delim("data/weather_legend.csv")
+weather_raw <- read_delim("data/weather_measurements.csv") 
+
+# join weather and legend data together
+weather <- left_join(weather_raw, legend, by = "stn")
+
+# create sf object of joined data
+weather <- st_as_sf(weather, coords = c("E","N"), crs = 2056)
+
+# create a new column with a rounded Datetime for the posmo data, to create a time join key with the weather data 
+posmo <- posmo |>
+  mutate(
+    Datetime_round = lubridate::round_date(datetime, "10 minutes")
+    )
+
+# create an sf object for legend to calculate nearest stations
+legend_sf <- st_as_sf(legend, coords = c("E","N"), crs = 2056) 
+
+# calculate nearest weather stations from every point of trajectory
+posmo$stn <- legend_sf$stn[st_nearest_feature(posmo, legend_sf)]
+
+# select only rain data, time and station names from weather 
+weather_posmo <- st_drop_geometry(weather) |> 
+  select(rco150z0, time, stn) 
+
+# join rain and station name information for every trajectory point which is the nearest to the calculated stations 
+posmo_added <- left_join(posmo, weather_posmo, by = c("stn" = "stn", "Datetime_round" = "time"))
+
+# create convenience variable with rain/no rain for every entry 
+posmo_added <- posmo_added |>
+  mutate(rain = ifelse(rco150z0 %in% c(0, NA), "no_rain", "rain"))
+
+# save clean data in dataframe as .gpkg
+st_write(posmo_added, "posmo_data/posmo_clean.gpkg")
+```
+
 
 ## Cut Dataset in Time
 Have an overview of the time span of the different data sets
@@ -203,97 +238,27 @@ ggplot(posmo, aes(datetime, USER_ID))+
 ```
 
 
-### OK - rain/no rain Nils
-Bedeutung Spalten in weather: 
-- tre200s0 = Lufttemperatur 2 m über Boden	Momentanwert (°C)
-- rco150z0 = Niederschlagsdauer	in Zehnminutensumme (wir brauchen also das, wenn 0 oder NA dann = no_rain)
-- sre00z0 = Sonnenscheindauer	Zehnminutensumme
-
-Hier habe ich versucht, dass für jeden Punkt der gemessen wurde in der Trajectory jeweils ausgerechnet wird, welche Wetterstation am nächsten ist & dann für die am nächsten liegende Wetterstation die Regenwerte übernommen werden sollen 
-```{r}
-# load all weather data --------------------------------------- 
-legend <- read_delim("data/weather_legend.csv")
-weather_raw <- read_delim("data/weather_measurements.csv") 
-
-# join data together ---------------------------------------------
-# left_join() weil wir nur die Informationen haben wollen, für die auch Messwerte vorliegen. Messwerte sind in der Tabelle weather
-weather <- left_join(weather_raw, legend, by = "stn")
-
-# create sf object --------------------------------------------------
-weather <- st_as_sf(weather, coords = c("E","N"), crs = 2056)
-
-# create a new column to round datetimeUTC for wildboar ------------------
-# diesen Abschnitt kann man glaube ich dann ignorieren 
-posmo <- posmo |>
-  mutate(
-    Datetime_round = lubridate::round_date(datetime, "10 minutes")
-    )
-
-
-# create an sf object for legend 
-legend_sf <- st_as_sf(legend, coords = c("E","N"), crs = 2056) 
-
-# calculate nearest weather stations from every point 
-posmo$stn <- legend_sf$stn[st_nearest_feature(posmo, legend_sf)]
-
-
-# select only rain data, time and station names from weather 
-weather_posmo <- st_drop_geometry(weather) |> 
-  select(rco150z0, time, stn) 
-
-# join rain and station name information for every trajectory point which is the nearest to the calulated stations 
-posmo_added <- left_join(posmo, weather_posmo, by = c("stn" = "stn", "Datetime_round" = "time"))
-
-# create convenience variable with rain/no rain for every entry 
-posmo_added <- posmo_added |>
-  mutate(rain = ifelse(rco150z0 %in% c(0, NA), "no_rain", "rain"))
-
-# we need the coordinates in separates columns to calculate eucl. distance
-posmo_coordinates <- st_coordinates(posmo_added)
-
-# add the separated coordinates to the posmo variable 
-posmo_sep <- cbind(posmo_added, posmo_coordinates)
-
-# save clean data in dataframe as .gpkg
-st_write(posmo_added, "posmo_data/posmo_clean.gpkg")
-
-# save clean data in .csv 
-write_csv(posmo_sep, "posmo_data/posmo_clean.csv")
-```
-
 # Research Questions 
 ## Question 1: Miriam 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns?
 - spatial: movement pattern (duration, distance etc. Literatur)
 - temporal: mean distance per weekend-day or workday-day DONE
-```{r}
-# load clean data 
-posmo <- read_sf("posmo_data/posmo_clean.gpkg")
-# Mittlere Distanz gesamt ausrechnen (wie geht das pro Tag?) -------------------------
-# Convert timestamp to date format
-posmo$date <- as.Date(posmo$datetime)
 
-
-# Create an sf object from the dataframe with the appropriate CRS
-# posmo_sf <- st_as_sf(posmo, coords = c("X", "Y"), crs = 2056) # nicht nötig, weil schon sf object 
-
-# Transform the coordinates to the desired CRS if necessary
-# posmo_sf_transformed <- st_transform(posmo_sf, crs = "+init=EPSG:2056") nicht nötig weil schon transofrmiert 
-```
 
 Calculate timelag, steplength and speed for posmo 
 
 In general first:
 ```{r}
-# load clean data 
-posmo <- read_sf("posmo_data/posmo_end1.gpkg")
+# load cleaned posmo data for subsequent analyisis steps
+posmo <- read_sf("posmo_data/posmo_clean.gpkg")
 
-# we need the coordinates in separates columns to calculate eucl. distance
-posmo_coordinates <- st_coordinates(posmo)
+# seperate coordinates in two different columns for subsequent analysis steps
+posmo_coordinates <- st_coordinates(posmo_added)
 
 # add the separated coordinates to the posmo variable 
-posmo <- cbind(posmo, posmo_coordinates)
+posmo_sep <- cbind(posmo_added, posmo_coordinates)
 
+# ------------------------------------------
 #Timelag 
 posmo <- posmo |> 
   mutate(diff_s = as.integer(difftime(lead(datetime), datetime, units == "secs")))
@@ -398,10 +363,14 @@ posmo <- posmo |>
 
 ## Question 2: Mirjam 
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
-- spatial: movement pattern (duration, distance etc. Literatur)
+- spatial: movement pattern (duration, distance, velocity)
 - temporal: mean distance per weekend-day or workday-day
+
+Outputs:
+Boxplot duration, distance, velocity for rain/ no rain
+Convex Hull per user 
+
 ### Temporal Analysis 
-Miriam: Du kannst ungefähr die gleichen Sachen machen, allerdings wenn du magst kannst du schon die Plots aussortieren (zumindest bei dir) die wir nicht brauchen und die Plots schön gestalten. Habe in keinem Plot die Titel angepasst, hoffe du verstehst es trotzdem. :) 
 ```{r}
 # load clean data 
 posmo <- read_sf("posmo_data/posmo_clean.gpkg")
@@ -411,157 +380,70 @@ posmo_coordinates <- st_coordinates(posmo)
 
 # add the separated coordinates to the posmo variable 
 posmo <- cbind(posmo, posmo_coordinates)
-```
 
-```{r}
-# 1. calculate mean travelling distance for rain and no rain --------------
-mean_dis_rain <- posmo |> 
-  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))|>  
+# 1. calculate mean travelling distance, duration and velocity for rain and no rain by foot 
+# subset foot and only day data 
+mean_rain_foot <- posmo |> 
+  subset(transport_mode == c("Walk", "Run") &
+         day_night == "day") |>
   group_by(rain, date, dataset) |> 
-  summarise(travldis_day = mean(steplength_m, na.rm = T))
+    mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2),
+           timelag = as.numeric(difftime(lead(datetime), datetime, units =
+                                           "secs")),
+           speed = steplength_m/timelag) |> 
+  summarise(travldis_day = mean(steplength_m, na.rm = T),
+            speed_mean = mean(speed, na.rm = T))
 
-# 2. visualise mean travelling distance for rain and no rain ------------
+
+# 2. calculate mean travelling distance, duration and velocity for rain and no rain by bike
+# subset foot and only day data 
+mean_rain_bike <- posmo |> 
+  subset(transport_mode == c("Bike") & 
+           day_night == "day") |>
+  group_by(rain, date, dataset) |> 
+  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2),
+           timelag = as.numeric(difftime(lead(datetime), datetime, units =
+                                           "secs")),
+           speed = steplength_m/timelag) |>
+  subset(!is.infinite(speed)) |>
+  summarise(travldis_day = mean(steplength_m, na.rm = T),
+            speed_mean = mean(speed, na.rm = T))
+
+# 3. visualise mean travelling distance for rain and no rain by foot
+ggplot() +
+  geom_boxplot(data = mean_rain_foot, aes(rain, travldis_day)) +
+  labs(title = "mean travelled distance compared between rain/no rain by foot") 
+
+# 4. visualise mean travelling distance for rain and no rain by bike
 # outliers up to 6000 m 
 ggplot() +
-  geom_boxplot(data = mean_dis_rain, aes(rain, travldis_day)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
-  ylim(0, 500)
+  geom_boxplot(data = mean_rain_bike, aes(rain, travldis_day)) +
+  labs(title = "mean travelled distance compared between rain/no rain by bike") 
+```
 
 
-# 3. isolate all rows with travelmode "walk" & "run" ----------------------------------
-posmo_walk <- posmo |>
-  subset(transport_mode == c("Walk", "Run")) #include "Run"?
-
-# 4. calculate mean travelling distance for rain and no rain --------------
-mean_dis_rain_walk <- posmo_walk |> 
-  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))|>  
-  group_by(rain, date, dataset) |> 
-  summarise(travldis_day = mean(steplength_m, na.rm = T))
-
-# 5. visualise mean travelling distance for rain and no rain ------------
-# outliers 
-ggplot() +
-  geom_boxplot(data = mean_dis_rain_walk, aes(rain, travldis_day)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
-  ylim(0, 500)
-
-# 6. isolate all rows with travelmode "bike" ----------------------------------
-posmo_bike <- posmo |>
-  subset(transport_mode == "Bike")
-
-# 7. calculate mean travelling distance for rain and no rain --------------
-mean_dis_rain_bike <- posmo_bike |> 
-  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))|>  
-  group_by(rain, date, dataset) |> 
-  summarise(travldis_day = mean(steplength_m, na.rm = T))
-
-# 8. visualise mean travelling distance for rain and no rain ------------
-# outliers 
-ggplot() +
-  geom_boxplot(data = mean_dis_rain_bike, aes(rain, travldis_day)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
-  ylim(0, 500)
-
+```{r}
 # Mittlere Distanz ÖV/Auto -------------------------------------------------
 # 9. isolate all rows with travelmode "car", "train" ----------------------------------
 posmo_car_train <- posmo |>
   subset(transport_mode == c("Train", "Tram", "Car", "Bus"))#works!
-
-# 10. calculate mean travelling distance for rain and no rain --------------
-mean_dis_rain_train <- posmo_car_train |> 
-  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))|>  
-  group_by(rain, date, dataset) |> 
-  summarise(travldis_day = mean(steplength_m, na.rm = T))
-
-# 11. visualise mean travelling distance for rain and no rain ------------
-# outliers 
-ggplot() +
-  geom_boxplot(data = mean_dis_rain_train, aes(rain, travldis_day)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes")
 ```
 
 
 ### Spatial Analysis 
 ```{r}
-# 1. calculate velocity and distance (steplength) overall 
-posmo_speed <- posmo |>
-  group_by(rain, date, dataset) |>
-  mutate(timelag = as.numeric(difftime(lead(datetime), datetime, units = "secs"))) |>
-  mutate(steplength = sqrt((X-lead(X))^2+(Y-lead(Y))^2)) |>
-  mutate(speed = steplength/timelag)
-
-# 2. visualise 
+# 1. Visualise mean speed between rain/ no rain by foot 
 ggplot() +
-  geom_boxplot(data = posmo_speed, aes(rain, speed, fill = transport_mode)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
-  ylim(0, 300)
+  geom_boxplot(data = mean_rain_foot, aes(rain, speed_mean)) +
+  labs(title = "mean speed compared between rain/no rain by foot") 
 
-# 3. subset calculated velocity with only "walk" and "run" values
-posmo_speed_walk <- posmo_speed |>
-  subset(transport_mode == c("Walk", "Run"))
-
-# 4. visualise 
+# 2. Visualise mean speed between rain/ no rain by bike 
 ggplot() +
-  geom_boxplot(data = posmo_speed_walk, aes(rain, speed, fill = dataset)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
-  ylim(0, 25)
-
-# 5. subset calculated velocity with only "bike" values
-posmo_speed_bike <- posmo_speed |>
-  subset(transport_mode == "Bike")
-
-# 6. visualise 
-ggplot() +
-  geom_boxplot(data = posmo_speed_bike, aes(rain, speed, fill = dataset)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes")
+  geom_boxplot(data = mean_rain_bike, aes(rain, speed_mean)) +
+  labs(title = "mean speed compared between rain/no rain by bike") 
 ```
 
-
-```{r}
-# 2. visualise distance
-ggplot() +
-  geom_boxplot(data = posmo_speed, aes(rain, steplength, fill = transport_mode)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
-  ylim(0, 300)
-
-
-# 4. visualise 
-ggplot() +
-  geom_boxplot(data = posmo_speed_walk, aes(rain, steplength, fill = transport_mode)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
-  ylim(0, 25)
-
-
-# 6. visualise 
-ggplot() +
-  geom_boxplot(data = posmo_speed_bike, aes(rain, steplength, fill = transport_mode)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
-  ylim(0, 300)
-```
-
-```{r}
-# 2. visualise distance
-ggplot() +
-  geom_boxplot(data = posmo_speed, aes(rain, timelag, fill = transport_mode)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
-  ylim(0, 300)
-
-
-# 4. visualise 
-ggplot() +
-  geom_boxplot(data = posmo_speed_walk, aes(rain, timelag, fill = transport_mode)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
-  ylim(0, 25)
-
-
-# 6. visualise 
-ggplot() +
-  geom_boxplot(data = posmo_speed_bike, aes(rain, timelag, fill = transport_mode)) +
-  labs(title = "mean travelled distance compared between rain/no rain over all travel_modes") +
-  ylim(0, 300)
-```
-
-
+### Test Question 3
 ```{r}
 # round datetime to 1h 
 posmo_round <- posmo |>
