@@ -101,7 +101,7 @@ ggplot(posmo, aes(datetime, dataset))+
 # exclude posmo7, posmo4, posmo10 due to insufficient time overlap with the other datasets
 # additionally remove user_id and place_name column, because the column dataset has unique/simple names for every user 
 posmo <- posmo |>
-  subset(dataset != "posmo4" & dataset != "posmo7" & dataset != "posmo10") |>
+  subset(dataset != "posmo4" & dataset != "posmo7" & dataset != "posmo10" & dataset != "posmo9" & dataset != "posmo8") |>
   select(-user_id, -place_name)
 
 # control if posmo4 is removed 
@@ -114,7 +114,23 @@ posmo <- posmo |>
   mutate(datetime = as.POSIXct(datetime))
 ```
 
-### OK - Remove outliers 
+### - Cut Dataset in Time
+```{r}
+# plot data without outliers to set timespan for further analysis
+ggplot(posmo, aes(datetime, dataset))+
+         geom_point()
+
+# choose timespan in which the most overlap of measurements between users is 
+posmo <- posmo |>
+  filter(datetime >= "2023-04-28 00:00:00", 
+         datetime < "2023-05-09 00:00:00")           
+
+# look at the new timecut data - more consistent 
+ggplot(posmo, aes(datetime, dataset))+
+         geom_point()
+```
+
+### - Remove outliers 
 ```{r}
 # delete trajectory data outside of switzerland (= delete outliers; norway & france): look at single posmo data to determine outliers 
 tmap_mode("view")
@@ -141,28 +157,13 @@ tm_shape(posmo_cut) +
 st_write(posmo_cut, "posmo_data/posmo_cut.gpkg")
 ```
 
-### OK - Cut Dataset in Time
+
+## - Add convenience variables 
+### - day/night, weekend/weekday
 ```{r}
-# load cleaned data set 
+# load outlier free data for shorter calculation time 
 posmo <- read_sf("posmo_data/posmo_cut.gpkg")
 
-# plot data without outliers to set timespan for further analysis
-ggplot(posmo, aes(datetime, dataset))+
-         geom_point()
-
-# choose timespan in which the most overlap of measurements between users is 
-posmo_timecut <- posmo |>
-  filter(datetime >= "2023-04-22 00:00:00", 
-         datetime < "2023-05-10 00:00:00")           
-
-# look at the new timecut data - more consistent 
-ggplot(posmo_timecut, aes(datetime, dataset))+
-         geom_point()
-```
-
-## OK - Add convenience variables 
-### OK - day/night, weekend/weekday
-```{r}
 # Add convenience variable weekend vs. workday (Sa-So: Weekend, Mo-Fr: Workday) 
 posmo <- posmo |>
   mutate(day_week = ifelse(weekday %in% c("Sat", "Sun"), "weekend", "weekday"))
@@ -186,9 +187,10 @@ posmo <- posmo |>
 unique(posmo$day_night)
 unique(posmo$day_week)
 
-# add convenience variable with date only (without time)
+# add convenience variable with date only (without time) and remove columns which are not used
 posmo <- posmo |> 
-  mutate(date = lubridate::date(datetime))
+  mutate(date = lubridate::date(datetime)) |>
+  select(-ICC, -NAME)
 ```
 
 ### OK - rain/no rain 
@@ -207,6 +209,10 @@ weather <- left_join(weather_raw, legend, by = "stn")
 
 # create sf object of joined data
 weather <- st_as_sf(weather, coords = c("E","N"), crs = 2056)
+
+# look at spatial distribution of weather stations 
+tm_shape(weather) +
+  tm_dots()
 
 # create a new column with a rounded Datetime for the posmo data, to create a time join key with the weather data 
 posmo <- posmo |>
