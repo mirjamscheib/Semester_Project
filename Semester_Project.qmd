@@ -728,19 +728,20 @@ ggplot() +
 ### Test Question 3
 ```{r}
 # round datetime to 1h 
+library(lubridate)
 posmo_round <- posmo |>
-  mutate(Datetime_round = lubridate::round_date(datetime, "1h")) |>
-  mutate(time_round = format(Datetime_round, format = "%H:%M:%S", tz = "UTC")) # Add convenience variable with only time 
+  mutate(hour = lubridate::hour(datetime))
+
 
 
 
 posmo_test <- posmo_round |>
-  group_by(time_round, dataset, weekday) |>
+  group_by(hour, weekday) |>
   mutate(steplength = sqrt((X-lead(X))^2+(Y-lead(Y))^2)) |>
   summarise(mean_dis = mean(steplength, na.rm = TRUE))
 
 
-ggplot(posmo_test, aes(time_round, mean_dis, col = weekday)) +
+ggplot(posmo_test, aes(hour, mean_dis, col = weekday)) +
   geom_point() +
   geom_line()
 ```
