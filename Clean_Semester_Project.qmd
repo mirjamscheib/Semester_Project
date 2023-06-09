@@ -7,10 +7,6 @@ format: html
 It is known that several factors influence spatio-temporal movement of people. Like weather (Quelle), day of the week (quelle) and time of the day (quelle). 
 
 # Pre-Processing 
-•	Daten anreichern: 
-    	Oder einfach mit Segmenten arbeiten? Sessile and moving unterscheiden?
-
-
 ## - Packages 
 ```{r}
 # clear space 
