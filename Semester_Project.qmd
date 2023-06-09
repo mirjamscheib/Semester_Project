@@ -34,6 +34,8 @@ library("plotly")
 
 ## OK - Load Data 
 we exclude gps data, because of the inherent different nature of data structure of this dataset, which would make research work more complex
+
+- evt. noch zusätzlichi Posmo daten laden 
 ```{r}
 # load all posmo data --------------------------------------- 
 posmo1 <- read_delim("posmo_data/steinm05_posmo_2023_04_10_2023_05_15.csv")
@@ -81,29 +83,23 @@ posmo5 <- st_as_sf(posmo5, coords = c("lon_x","lat_y"), crs = 4326) |>
 # bind all data together, create a single dataframe 
 posmo <- rbind(posmo1, posmo2, posmo3, posmo4, posmo5)
 
-# remore user_id column, because the column dataset has unique/simple names for every user 
-posmo <- posmo |>
-  subset(dataset != "posmo4") |>
-  select(-user_id)
-
-# transform datetime into POSIXct format 
-posmo <- posmo |>
-  mutate(datetime = as.POSIXct(datetime))
-```
-
-
-## !!! posmo4 removing?? Data consistency overview and removal of inconsistent datasets
-```{r}
 # look at data consistency
 ggplot(posmo, aes(datetime, dataset))+
          geom_point()
 
-# -> posmo4 will be removed because of inconsistent tracking times? 
+# remore user_id column, because the column dataset has unique/simple names for every user 
+posmo <- posmo |>
+  subset(dataset != "posmo4") |> # remove dataset 4 (because it has few data)
+  select(-user_id)
 
 # control if posmo4 is removed 
 posmo$dataset |> 
   unique()
 # -> posmo4 successfully removed
+
+# transform datetime into POSIXct format 
+posmo <- posmo |>
+  mutate(datetime = as.POSIXct(datetime))
 ```
 
 ### OK - Remove outliers 
@@ -149,14 +145,37 @@ tm_shape(posmo_cut) +
 st_write(posmo_cut, "posmo_data/posmo_cut.gpkg")
 ```
 
-
-## OK - Add convenience variables 
-### OK - day/night, weekend/weekday
+### !! Cut Dataset in Time
+Have an overview of the time span of the different data sets
 ```{r}
 # load cleaned data set 
 posmo <- read_sf("posmo_data/posmo_cut.gpkg")
 
+ggplot(posmo, aes(datetime, dataset))+
+         geom_point()
+```
+Cut dataset
+```{r}
+unique(posmo$date)
 
+posmo_timecut <- posmo |>
+  filter(date = ifelse(datetime < "2023-04-22 00:00:00" & datetime > "2023-05-10 00:00:00", TRUE, FALSE)
+                       
+                       c("2023-04-11", "2023-04-12", "2023-04-14", "2023-04-10", "2023-04-13", "2023-04-15", "2023-04-17", "2023-04-20", "2023-04-21", "2023-04-19", "2023-04-01",  "2023-04-02",  "2023-04-03", "2023-04-04", "2023-04-05", "2023-04-06" ,"2023-04-07", "2023-04-08", "2023-04-09", "2023-04-16", "2023-04-18", "2023-05-14"))
+
+unique(posmo_timecut$date)
+```
+
+```{r}
+ggplot(posmo_timecut, aes(date, dataset))+
+         geom_point()
+```
+Das macht irgendwie keinen Sinn, bitte auch mal anschauen.. 
+
+
+## OK - Add convenience variables 
+### OK - day/night, weekend/weekday
+```{r}
 # Add convenience variable weekend vs. workday (Sa-So: Weekend, Mo-Fr: Workday) 
 posmo <- posmo |>
   mutate(day_week = ifelse(weekday %in% c("Sat", "Sun"), "weekend", "weekday"))
@@ -185,7 +204,6 @@ posmo <- posmo |>
   mutate(date = lubridate::date(datetime))
 ```
 
-<<<<<<< HEAD
 ### OK - rain/no rain 
 Meaning of the columns in weather: 
 - tre200s0 = Air temperature 2 m above ground (momentary value in °C)
@@ -193,41 +211,7 @@ Meaning of the columns in weather:
 - sre00z0 = Sunshine duration ten-minute sum
 
 ```{r}
-# load all weather and legend data 
-=======
-## !! Cut Dataset in Time
-Have an overview of the time span of the different data sets
-```{r}
-ggplot(posmo, aes(datetime, dataset))+
-         geom_point()
-```
-Cut dataset
-```{r}
-unique(posmo$date)
-
-posmo_timecut <- posmo |>
-  subset(date != c("2023-04-11", "2023-04-12", "2023-04-14", "2023-04-10", "2023-04-13", "2023-04-15", "2023-04-17", "2023-04-20", "2023-04-21", "2023-04-19", "2023-04-01",  "2023-04-02",  "2023-04-03", "2023-04-04", "2023-04-05", "2023-04-06" ,"2023-04-07", "2023-04-08", "2023-04-09", "2023-04-16", "2023-04-18", "2023-05-14"))
-
-unique(posmo_timecut$date)
-
-```
-
-```{r}
-ggplot(posmo_timecut, aes(date, dataset))+
-         geom_point()
-```
-Das macht irgendwie keinen Sinn, bitte auch mal anschauen.. 
-
-### OK - rain/no rain Nils
-Bedeutung Spalten in weather: 
-- tre200s0 = Lufttemperatur 2 m über Boden	Momentanwert (°C)
-- rco150z0 = Niederschlagsdauer	in Zehnminutensumme (wir brauchen also das, wenn 0 oder NA dann = no_rain)
-- sre00z0 = Sonnenscheindauer	Zehnminutensumme
-
-Hier habe ich versucht, dass für jeden Punkt der gemessen wurde in der Trajectory jeweils ausgerechnet wird, welche Wetterstation am nächsten ist & dann für die am nächsten liegende Wetterstation die Regenwerte übernommen werden sollen 
-```{r}
-# load all weather data --------------------------------------- 
->>>>>>> eceade618137eb1b8318341143240d23a94ca0fa
+# load all weather data 
 legend <- read_delim("data/weather_legend.csv")
 weather_raw <- read_delim("data/weather_measurements.csv") 
 
@@ -258,29 +242,49 @@ posmo_added <- left_join(posmo, weather_posmo, by = c("stn" = "stn", "Datetime_r
 
 # create convenience variable with rain/no rain for every entry 
 posmo_added <- posmo_added |>
-  mutate(rain = ifelse(rco150z0 %in% c(0, NA), "no_rain", "rain"))
-
-# save clean data in dataframe as .gpkg
-st_write(posmo_added, "posmo_data/posmo_clean.gpkg")
+  mutate(rain = ifelse(rco150z0.y %in% c(0, NA), "no_rain", "rain"))
 ```
 
 ### calculate rain per day
 ```{r}
 # calculate rainy, not rainy days 
-posmo_rain <- posmo |>
+posmo <- posmo_added |>
   group_by(date) |>
-  mutate(sum_rain = sum(rco150z0, na.rm = TRUE)),
+  mutate(sum_rain = sum(rco150z0.y, na.rm = TRUE),
          rain_day = ifelse(sum_rain < 85, "no_rain", "rain")) # hier noch threshold festlegen 
 #  group_by(date, sum_rain, transport_mode)
+```
 
-mean_rain <- posmo_rain |> 
+
+```{r}
+# write function to calculate steplength, timelag and speed 
+metrics <- function(a, x, y, z) {
+  mutate(a, steplength_m = sqrt((x - lead(x))^2 + (y - lead(y))^2),
+           timelag = as.numeric(difftime(lead(z), z, units = "secs")),
+           speed = steplength_m/timelag)
+}
+
+# seperate coordinates in two different columns for subsequent analysis steps
+posmo_coordinates <- st_coordinates(posmo)
+
+# add the separated coordinates to the posmo variable 
+posmo_sep <- cbind(posmo, posmo_coordinates)
+
+metrics(a = posmo_sep, x = X, y = Y, z = datetime)
+  
+posmo |> 
+  group_by(rain_day, date, dataset, transport_mode) |> 
+  metrics(x = X, y = Y, z = datetime)
+
+posmo |> 
   group_by(rain_day, date, dataset, transport_mode) |> 
     mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2),
-           timelag = as.numeric(difftime(lead(datetime), datetime, units =
-                                           "secs")),
-           speed = steplength_m/timelag) |> 
-  summarise(travldis_day = mean(steplength_m, na.rm = T),
-            speed_mean = mean(speed, na.rm = T))
+           timelag = as.numeric(difftime(lead(datetime), datetime, units = "secs")),
+           speed = steplength_m/timelag)
+ 
+  group_by(rain_day, date, dataset, transport_mode) |> 
+  # summarise(travldis_day = mean(steplength_m, na.rm = T),
+    #        speed_mean = mean(speed, na.rm = T)) # mean brauchen wir nicht unbedingt
 
 # nicht über mean darstellen 
 ggplot(mean_rain, aes(transport_mode, log(travldis_day), fill = rain_day)) +
@@ -290,68 +294,44 @@ ggplot(mean_rain, aes(rain_day, log(travldis_day), col = transport_mode)) +
   geom_boxplot()
 ```
 
-
-## Cut Dataset in Time
-Have an overview of the time span of the different data sets
+### Save cleaned, added dataset
 ```{r}
-ggplot(posmo, aes(datetime, dataset))+
-         geom_point()
+# save clean data in dataframe as .gpkg
+st_write(posmo_added, "posmo_data/posmo_clean.gpkg")
 ```
 
 
 # Research Questions 
 ## Question 1: Miriam 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns?
-<<<<<<< HEAD
-- spatial: movement pattern (duration, distance etc. Literatur)
-- temporal: mean distance per weekend-day or workday-day DONE
-
 
 Calculate timelag, steplength and speed for posmo 
-=======
+
 - spatial: movement pattern -> mean trip duration/distance per weekday/workday - DONE
 - temporal: mean distance per weekend-day or workday-day -  DONE
+### Load cleaned data
 ```{r}
 # load clean data 
 posmo <- read_sf("posmo_data/posmo_clean.gpkg")
-# Mittlere Distanz gesamt ausrechnen (wie geht das pro Tag?) -------------------------
-# Convert timestamp to date format
-posmo$date <- as.Date(posmo$datetime)
-
-
-# Create an sf object from the dataframe with the appropriate CRS
-# posmo_sf <- st_as_sf(posmo, coords = c("X", "Y"), crs = 2056) # nicht nötig, weil schon sf object 
-
-# Transform the coordinates to the desired CRS if necessary
-# posmo_sf_transformed <- st_transform(posmo_sf, crs = "+init=EPSG:2056") nicht nötig weil schon transofrmiert 
 ```
 
 Calculate timelag, steplength and speed for posmo -> temporal
->>>>>>> eceade618137eb1b8318341143240d23a94ca0fa
 
 In general first:
 ```{r}
-# load cleaned posmo data for subsequent analyisis steps
-posmo <- read_sf("posmo_data/posmo_clean.gpkg")
-
 # seperate coordinates in two different columns for subsequent analysis steps
 posmo_coordinates <- st_coordinates(posmo_added)
 
 # add the separated coordinates to the posmo variable 
 posmo_sep <- cbind(posmo_added, posmo_coordinates)
 
-# ------------------------------------------
-#Timelag 
-posmo <- posmo |> 
-  mutate(diff_s = as.integer(difftime(lead(datetime), datetime, units == "secs")))
-#es gibt diff_s mit 0, die muss man glaube ich entfernen, kann es sein das Posmo z.T. doppelte Einträge erfasst hat?
-
-#Steplength
-posmo <- posmo |> 
-  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2))
+# timelag in s = diff_s
+# compare weekend/ weekday
+ggplot(posmo, aes(transport_mode, log(travldis_day), fill = day_week)) +
+  geom_boxplot()
 
 #Steplength per day
-mean_stepl_per_weekday <- posmo |>  
+mean_stepl_per_weekday <- posmo_sep |>  
   group_by(weekday, dataset) |> 
   summarise(mean(steplength_m, na.rm = T))
 
@@ -388,7 +368,7 @@ mean_travldis_per_date_week <- posmo |>
 # visualize mean travelled distance compared between weekend/weekday
 ggplot() +
   geom_boxplot(data = mean_travldis_per_date_week, aes(day_week, log(travldis_day))) +
-  labs(title = "mean travelled distance compared between weekend/weekday")
+  labs(title = "Travelled distance compared between weekend/weekday")
 
 ```
 
