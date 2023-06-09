@@ -461,7 +461,7 @@ unique(posmo$segment_id) #wie erwartet haben wir uuunzählige Segmente
 
 ```
 
-For mean duration of trips per weekday/weekend-day remove static segments and segments with duration < 5min
+For mean duration of trips per weekday/weekend-day remove static segments and segments with duration < 10 min
 ```{r}
 #only movement segments
 posmo_trips <- posmo |>
@@ -720,21 +720,30 @@ posmo_test <- posmo_round |>
   summarise(mean_dis = mean(steplength, na.rm = TRUE))
 
 
+# mo-so
 ggplot(posmo_test, aes(hour, log(mean_dis), col = weekday)) +
   geom_point() +
   geom_line()
 
+# weekend vs. weekday
 ggplot(posmo_test, aes(hour, log(mean_dis), col = day_week)) +
   geom_point() +
   geom_line()
+
+# jetzt das noch mit segmentierten Daten 
 ```
 
 
 # Visualisations 
-Wetterfrage: 
-•	Boxplot 
-o	pro User und Wettercondition 
-o	pro Wettercondition 
-o	Pro travel mode 
-o	Pro Fussverkehr, Veloverkehr
+Wettefrage: 
+Boxplot Vergleich rain / no rain (x travelmode, y (spatial) distance, (spatial) velocity, (temporal) duration, färbung rain no rain)
+
+Evt. map plot - rain no rain, convex hull 
+
+Weekend/Weekday Frage:
+Boxplot Vergleich weekend, weekday (x: travelmode, y: (spatial) distance, (spatial) velocity, (temporal) duration, färbung: weekend/weekday)
+
+Evt. map plot - weekend/weekday, convex hull 
+
+
 
