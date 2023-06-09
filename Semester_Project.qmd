@@ -270,7 +270,7 @@ st_write(posmo_added, "posmo_data/posmo_clean.gpkg")
 # calculate rainy, not rainy days 
 posmo_rain <- posmo |>
   group_by(date) |>
-  mutate(sum_rain = sum(sum(rco150z0, na.rm = TRUE)),
+  mutate(sum_rain = sum(rco150z0, na.rm = TRUE)),
          rain_day = ifelse(sum_rain < 85, "no_rain", "rain")) # hier noch threshold festlegen 
 #  group_by(date, sum_rain, transport_mode)
 
@@ -283,6 +283,7 @@ mean_rain <- posmo_rain |>
   summarise(travldis_day = mean(steplength_m, na.rm = T),
             speed_mean = mean(speed, na.rm = T))
 
+# nicht über mean darstellen 
 ggplot(mean_rain, aes(transport_mode, log(travldis_day), fill = rain_day)) +
   geom_boxplot()
 
