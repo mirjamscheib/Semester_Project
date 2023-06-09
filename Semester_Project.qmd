@@ -4,7 +4,7 @@ format: html
 ---
 
 # Introduction 
-....
+It is known that several factors influence spatio-temporal movement of people. Like weather (Quelle), day of the week (quelle) and time of the day (quelle). 
 
 # Pre-Processing 
 •	Daten anreichern: 
@@ -739,11 +739,24 @@ Wettefrage:
 Boxplot Vergleich rain / no rain (x travelmode, y (spatial) distance, (spatial) velocity, (temporal) duration, färbung rain no rain)
 
 Evt. map plot - rain no rain, convex hull 
+Table Summary like best practice example 
 
 Weekend/Weekday Frage:
 Boxplot Vergleich weekend, weekday (x: travelmode, y: (spatial) distance, (spatial) velocity, (temporal) duration, färbung: weekend/weekday)
 
 Evt. map plot - weekend/weekday, convex hull 
+Table Summary like best practice example 
 
+Distance per hour of the day: 
+X-y plot Linienplot (x: hours, y: distance, trip (segment), färbung: Wochentag, Weekend/Weekday)
+
+Table Summary like best practice example 
+
+Evt. map plot - weekend/weekday, convex hull 
+
+
+# Project Text 
+1. Zeichenzählung einfügen 
+2. Paper in Vorlesungsfolien (Zotero zitieren in Word)
 
 
