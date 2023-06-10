@@ -356,7 +356,7 @@ posmo_calc <- posmo |>
   )
 
 # ungroup() because when we apply rowwise() each row is a grouped individually which we don't want. 
-posmo <- posmo |>
+posmo <- posmo_calc |>
   rowwise()|>
   mutate(
     stepMean = mean(c(n_minus1, n_minus2, n_plus1, n_plus2))
@@ -366,7 +366,7 @@ posmo <- posmo |>
 
 Define static, than remove "static point"
 ```{r}
-posmo <- posmo |>
+posmo <- posmo_calc |>
     ungroup() |>
     mutate(static = stepMean < mean(stepMean, na.rm = TRUE))
 
