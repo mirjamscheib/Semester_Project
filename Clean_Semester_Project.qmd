@@ -546,7 +546,7 @@ Convex Hull per user
 posmo <- read_delim("posmo_data/posmo_clean1.csv")
 ```
 
-### Temporal Analysis 
+### Spatial Analysis 
 ```{r}
 # Boxplot compare weekend/ weekday without grouping (overall steplength)
 ggplot(posmo, aes(transport_mode, log(steplength), fill = rain_day)) +
@@ -584,13 +584,24 @@ ggplot() +
   labs(title = "Velocity compared between rainy days vs. not rainy days by foot and bike") 
 ```
 
-### Spatial Analysis 
+### Temporal Analysis 
 
+### Create Visual Maps 
+```{r}
+# transform posmo data into an sf object 
+posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
+
+tmap_mode("view")
+
+# unsegmented visualisation 
+tm_shape(posmo) +
+  tm_dots(col = "rain_day")
+```
 
 
 # Visualisations 
 Wettefrage: 
-Boxplot Vergleich rain / no rain (x travelmode, y (spatial) distance, (spatial) velocity, (temporal) duration, färbung rain no rain)
+Boxplot Vergleich rain / no rain (x travelmode, y (temporal) duration, färbung rain no rain)
 
 Evt. map plot - rain no rain, convex hull 
 Table Summary like best practice example 
