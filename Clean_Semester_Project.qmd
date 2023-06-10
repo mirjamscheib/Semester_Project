@@ -341,13 +341,13 @@ ggplot(posmo, aes(transport_mode, steplength, fill = day_week)) +
   labs(title = "Mean Velocity for different Travelmodes compared between Weekend vs. Weekday")
 ```
 
-#### Duration 
+#### ! Duration 
 SPATIAL: movement pattern -> mean duration per weekday/workday
 ```{r}
 ### Calculate temporal windows ------------------------------------------------------
 # calculates time taken from each step to the next 
 # n_plus2 calculates an offset of 2 time steps
-posmo <- posmo |>
+posmo_calc <- posmo |>
   mutate(
     n_plus1 = sqrt((lead(X) - X)^2 + (lead(Y) - Y)^2), # distance to pos + 10 seconds
     n_plus2 = sqrt((lead(X, 2) - X)^2 + (lead(Y, 2) - Y)^2), # distance to pos +20 seconds
@@ -442,33 +442,6 @@ posmo_trips |>
   
 ```
 
-Mean trip distance per hour of the day
-```{r} 
-posmo_hours <- posmo_trips |>
-  mutate(Datetime_round = lubridate::round_date(datetime, "1h")) |>
-  mutate(time_round = format(Datetime_round, format = "%H", tz = "UTC")) # Add convenience variable with only time 
-
-
-posmo_hours |>
-  group_by(segment_id) |>
-  ggplot() +
-  geom_boxplot(aes(time_round, log(trip_dis))) +
-  labs(title = "mean trip distance per hour of the day")
-
-#Wir haben zu wenig Daten für so einen Plot scheint es, die Boxplots sehen nicht so "gesund" aus
-```
-
-```{r}
-posmo_hours |>
-  group_by(segment_id) |>
-  ggplot() +
-  geom_boxplot(aes(time_round, trip_dis)) +
-  coord_polar("x") +
-  labs(title = "mean trip distance per hour of the day")
-
-#Tja, da niemand in der Nacht nur einmal unterwegs war, haben wir ab 21Uhr bis 04 Uhr Morgens absolut keine Daten...
-
-```
 
 ### Temporal Analysis 
 
@@ -479,6 +452,7 @@ posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056)
 
 tmap_mode("view")
 
+# unsegmented visualisation 
 tm_shape(posmo) +
   tm_dots(col = "day_week")
 ```
@@ -489,7 +463,7 @@ hist(log10(posmo$speed), 100)
 ```
 
 
-## Question 2: Miriam
+## - Question 2: Miriam
 Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
 Durchschnittliche Anzahl Reisen pro Tag? 
 
@@ -502,24 +476,44 @@ posmo <- read_delim("posmo_data/posmo_clean1.csv")
 ### Analysis
 ```{r}
 # round datetime to 1h 
-library(lubridate)
 posmo_round <- posmo |>
   mutate(hour = lubridate::hour(datetime))
 
+# create dataframe, which calculates mean steplength, speed per hour over all dates
+# here with weekdays 
+posmo_hour <- posmo_round |>
+  group_by(hour, weekday) |>
+  summarise(mean_dis = mean(steplength, na.rm = TRUE),
+            mean_speed = mean(speed, na.rm = TRUE)) |> 
+  mutate(percentage_dis = mean_dis/sum(mean_dis)*100,
+         percentage_speed = mean_speed/sum(mean_speed)*100)
 
-posmo_test <- posmo_round |>
-  group_by(hour, weekday, day_week) |>
-  mutate(steplength = sqrt((X-lead(X))^2+(Y-lead(Y))^2)) |>
-  summarise(mean_dis = mean(steplength, na.rm = TRUE))
-
-
-# mo-so
-ggplot(posmo_test, aes(hour, log(mean_dis), col = weekday)) +
+# mo-so with distance (steplength) travelled
+ggplot(posmo_hour, aes(hour, log(mean_dis), col = weekday)) +
   geom_point() +
   geom_line()
 
-# weekend vs. weekday
-ggplot(posmo_test, aes(hour, log(mean_dis), col = day_week)) +
+# mo-so with speed 
+ggplot(posmo_hour, aes(hour, log(mean_speed), col = weekday)) +
+  geom_point() +
+  geom_line()
+
+# create dataframe, which calculates mean steplength, speed per hour over all dates
+# here with days of the week (weekend vs. weekday)
+posmo_day <- posmo_round |>
+  group_by(hour, day_week)|>
+  summarise(mean_dis = mean(steplength, na.rm = TRUE),
+            mean_speed = mean(speed, na.rm = TRUE)) |> 
+  mutate(percentage_dis = mean_dis/sum(mean_dis)*100,
+         percentage_speed = mean_speed/sum(mean_speed)*100)
+
+# weekend vs. weekday with distance (steplength) travelled
+ggplot(posmo_day, aes(hour, log(mean_dis), col = day_week)) +
+  geom_point() +
+  geom_line()
+
+# weekend vs. weekday with speed
+ggplot(posmo_day, aes(hour, log(mean_speed), col = day_week)) +
   geom_point() +
   geom_line()
 
@@ -536,116 +530,61 @@ posmo_hours |>
 ```
 
 
-## Question 3: Mirjam 
+## - Question 3: Mirjam 
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
 - spatial: movement pattern (duration, distance, velocity)
 - temporal: mean distance per weekend-day or workday-day
+2. Unterscheiden zwischen regentaugliche, regenuntaugliche Transport modes (Fragestellung anpassen zu regentauglich, nicht regentauglich)
 
 Outputs:
 Boxplot duration, distance, velocity for rain/ no rain
 Convex Hull per user 
 
-### Temporal Analysis 
+### - Load cleaned data 
 ```{r}
 # load clean data 
-posmo <- read_sf("posmo_data/posmo_clean.gpkg")
-
-# we need the coordinates in separates columns to calculate eucl. distance
-posmo_coordinates <- st_coordinates(posmo)
-
-# add the separated coordinates to the posmo variable 
-posmo <- cbind(posmo, posmo_coordinates)
-
-# 1. calculate mean travelling distance, duration and velocity for rain and no rain by foot 
-# subset foot and only day data 
-mean_rain_foot <- posmo_rain |> 
-  subset(transport_mode == c("Walk", "Run") &
-         day_night == "day") |>
-  group_by(rain, date, dataset) |> 
-    mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2),
-           timelag = as.numeric(difftime(lead(datetime), datetime, units =
-                                           "secs")),
-           speed = steplength_m/timelag) |> 
-  summarise(travldis_day = mean(steplength_m, na.rm = T),
-            speed_mean = mean(speed, na.rm = T))
-
-
-# 2. calculate mean travelling distance, duration and velocity for rain and no rain by bike
-# subset foot and only day data 
-mean_rain_bike <- posmo |> 
-  subset(transport_mode == c("Bike") & 
-           day_night == "day") |>
-  group_by(rain, date, dataset) |> 
-  mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2),
-           timelag = as.numeric(difftime(lead(datetime), datetime, units =
-                                           "secs")),
-           speed = steplength_m/timelag) |>
-  subset(!is.infinite(speed)) |>
-  summarise(travldis_day = mean(steplength_m, na.rm = T),
-            speed_mean = mean(speed, na.rm = T))
-
-# 3. visualise mean travelling distance for rain and no rain by foot
-ggplot() +
-  geom_boxplot(data = mean_rain_foot, aes(rain, travldis_day)) +
-  labs(title = "mean travelled distance compared between rain/no rain by foot") 
-
-# 4. visualise mean travelling distance for rain and no rain by bike
-# outliers up to 6000 m 
-ggplot() +
-  geom_boxplot(data = mean_rain_bike, aes(rain, travldis_day)) +
-  labs(title = "mean travelled distance compared between rain/no rain by bike") 
+posmo <- read_delim("posmo_data/posmo_clean1.csv")
 ```
 
-1. Was heisst Regen (moving window) (regentag, nicht regentag)
-2. Unterscheiden zwischen regentaugliche, regenuntaugliche Transport modes (Fragestellung anpassen zu regentauglich, nicht regentauglich)
-3. wie viel km ich pro tag mit welchem transportmittel gefahren bin (boxplot)
-4. Zeitschnitt macht doch Sinn wenn es geht 
-
+### Temporal Analysis 
 ```{r}
-# Mittlere Distanz ÖV/Auto -------------------------------------------------
-# 9. isolate all rows with travelmode "car", "train" ----------------------------------
-posmo_car_train <- posmo |>
-  subset(transport_mode == c("Train", "Tram", "Car", "Bus"))#works!
-```
+# Boxplot compare weekend/ weekday without grouping (overall steplength)
+ggplot(posmo, aes(transport_mode, log(steplength), fill = rain_day)) +
+  geom_boxplot() +
+  labs(title = "Travelled Distance per Transport Mode comparing Weekend vs. Weekday")
 
+#die Distanzen Walk pro Tag sind sehr hoch, das finde ich speziell.. stimmt das wirklich? Liegt es daran, dass wir nur wenige Personen haben? Gab es viele Fehlerfassungen der App? 
+
+# Boxplot compare weekend/ weekday without grouping (overall speed)
+ggplot(posmo, aes(transport_mode, log(speed), fill = rain_day)) +
+  geom_boxplot() +
+  labs(title = "Speed per Transport Mode comparing Weekend vs. Weekday")
+
+# Table Summary 
+question2_summary <- posmo |> 
+  group_by(rain_day, transport_mode) |> 
+  summarise(steplength_mean = mean(steplength, na.rm = T),
+            speed_mean = mean(speed, na.rm = T)) |> 
+  mutate(percentage_steplength = steplength_mean/sum(steplength_mean)*100,
+         percentage_speed = speed_mean/sum(speed_mean)*100)
+
+# subset foot and only day data 
+mean_rain <- posmo |> 
+  subset(transport_mode == c("Walk", "Run", "Bike", "Train", "Tram", "Car", "Bus")) |>
+  group_by(rain_day, date) 
+
+# 3. visualise travelling distance for rain and no rain by foot & bike
+ggplot() +
+  geom_boxplot(data = mean_rain, aes(transport_mode, log(steplength), fill = rain_day)) +
+  labs(title = "Travelled distance compared between rainy days vs. not rainy days by foot and bike") 
+
+# 4. visualise speed for rain and no rain by bike & foot
+ggplot() +
+  geom_boxplot(data = mean_rain, aes(transport_mode, log(speed), fill = rain_day)) +
+  labs(title = "Velocity compared between rainy days vs. not rainy days by foot and bike") 
+```
 
 ### Spatial Analysis 
-```{r}
-posmo |> 
-  group_by(rain_day, date, dataset, transport_mode) |> 
-  metrics(x = X, y = Y, z = datetime)
-
-posmo |> 
-  group_by(rain_day, date, dataset, transport_mode) |> 
-    mutate(steplength_m = sqrt((X - lead(X))^2 + (Y - lead(Y))^2),
-           timelag = as.numeric(difftime(lead(datetime), datetime, units = "secs")),
-           speed = steplength_m/timelag)
- 
-  group_by(rain_day, date, dataset, transport_mode) |> 
-  # summarise(travldis_day = mean(steplength_m, na.rm = T),
-    #        speed_mean = mean(speed, na.rm = T)) # mean brauchen wir nicht unbedingt
-
-# nicht über mean darstellen 
-ggplot(mean_rain, aes(transport_mode, log(travldis_day), fill = rain_day)) +
-  geom_boxplot()
-
-ggplot(mean_rain, aes(rain_day, log(travldis_day), col = transport_mode)) +
-  geom_boxplot()
-```
-
-
-```{r}
-# 1. Visualise mean speed between rain/ no rain by foot 
-ggplot() +
-  geom_boxplot(data = mean_rain_foot, aes(rain, speed_mean)) +
-  labs(title = "mean speed compared between rain/no rain by foot") 
-
-# 2. Visualise mean speed between rain/ no rain by bike 
-ggplot() +
-  geom_boxplot(data = mean_rain_bike, aes(rain, speed_mean)) +
-  labs(title = "mean speed compared between rain/no rain by bike") 
-```
-
 
 
 
