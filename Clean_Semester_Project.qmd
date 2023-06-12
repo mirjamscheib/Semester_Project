@@ -572,19 +572,17 @@ Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns
 posmo <- read_delim("posmo_data/posmo_clean2.csv")
 ```
 
-#### Speed & Distance 
+#### - Speed & Distance 
 ```{r}
 # Boxplot compare weekend/ weekday without grouping (overall steplength)
 ggplot(posmo, aes(transport_mode, log(steplength), fill = rain_day)) +
   geom_boxplot() +
-  labs(title = "Travelled Distance per Transport Mode comparing Weekend vs. Weekday")
-
-#die Distanzen Walk pro Tag sind sehr hoch, das finde ich speziell.. stimmt das wirklich? Liegt es daran, dass wir nur wenige Personen haben? Gab es viele Fehlerfassungen der App? 
+  labs(title = "Travelled Distance per Transport Mode comparing Rainy Days vs. Not Rainy Days")
 
 # Boxplot compare weekend/ weekday without grouping (overall speed)
 ggplot(posmo, aes(transport_mode, log(speed), fill = rain_day)) +
   geom_boxplot() +
-  labs(title = "Speed per Transport Mode comparing Weekend vs. Weekday")
+  labs(title = "Speed per Transport Mode comparing Rainy Days vs. Not Rainy Days")
 
 # Table Summary 
 question2_summary <- posmo |> 
@@ -593,8 +591,10 @@ question2_summary <- posmo |>
             speed_mean = mean(speed, na.rm = T)) |> 
   mutate(percentage_steplength = steplength_mean/sum(steplength_mean)*100,
          percentage_speed = speed_mean/sum(speed_mean)*100)
+```
 
-# subset foot and only day data 
+```{r}
+# subset travel_modes for more closer look 
 mean_rain <- posmo |> 
   subset(transport_mode == c("Walk", "Run", "Bike", "Train", "Tram", "Car", "Bus")) |>
   group_by(rain_day, date) 
@@ -602,51 +602,84 @@ mean_rain <- posmo |>
 # 3. visualise travelling distance for rain and no rain by foot & bike
 ggplot() +
   geom_boxplot(data = mean_rain, aes(transport_mode, log(steplength), fill = rain_day)) +
-  labs(title = "Travelled distance compared between rainy days vs. not rainy days by foot and bike") 
+  labs(title = "Travelled distance compared between rainy days vs. not rainy days") 
 
 # 4. visualise speed for rain and no rain by bike & foot
 ggplot() +
   geom_boxplot(data = mean_rain, aes(transport_mode, log(speed), fill = rain_day)) +
-  labs(title = "Velocity compared between rainy days vs. not rainy days by foot and bike") 
+  labs(title = "Velocity compared between rainy days vs. not rainy days") 
 ```
 
 ### Temporal Analysis 
-#### Load trips data
+#### - Load trips data 
+```{r}
+# load clean trips data 
+posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
+```
 
-#### Duration 
+#### - Duration 
+Mean duration of trips compared between Weekend vs. Weekday
+```{r}
+# Calculate mean duration and mean dis of trips per day
+# mean trip duration looks odd, need to check that (!!)
+posmo_trips |>
+  group_by(segment_id) |>
+  ggplot() +
+  geom_boxplot(aes(transport_mode, trip_duration/60, fill = rain_day)) +
+  labs(title = "mean trip duration [min] compared between rainy days vs. not rainy days")
 
-### Create Visual Maps 
+# mean trip distance compared between rain/no rain
+posmo_trips |>
+  group_by(segment_id) |>
+  ggplot() +
+  geom_boxplot(aes(transport_mode, trip_dis, fill = rain_day)) +
+  labs(title = "mean trip distance compared between rainy days vs. not rainy days")
+```
+
+### - Create Visual Maps 
 ```{r}
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
 
+# transform posmo data into an sf object 
+posmo_trips <- st_as_sf(posmo_trips, coords = c("X","Y"), crs = 2056) 
+
+# 1. add grouping variable to the sf object
+posmo_grouped <- group_by(posmo, dataset)
+
+posmo_trips_grouped <- group_by(posmo_trips, dataset)
+
+# 2. use summarise() to "dissolve" all point into a multipoint object
+posmo_smry <- summarise(posmo_grouped)
+
+posmo_trips_smry <- summarise(posmo_trips_grouped)
+
+
+# 3. run st_convex_hull()
+mcp_posmo <- st_convex_hull(posmo_smry)
+
+mcp_posmo_trips <- st_convex_hull(posmo_trips_smry)
+```
+
+```{r}
 tmap_mode("view")
 
 # unsegmented visualisation 
-tm_shape(posmo) +
-  tm_dots(col = "rain_day")
+tm_shape(mcp_posmo) +
+  tm_fill(col = "dataset", alpha = 0.4) +
+  tm_shape(mcp_posmo) +
+  tm_borders(col = "red") +
+  tm_shape(posmo) +
+  tm_dots(col = "rain_day") 
+
+# segmented visualisation 
+tm_shape(mcp_posmo_trips) +
+  tm_fill(col = "dataset", alpha = 0.4) +
+  tm_shape(mcp_posmo_trips) +
+  tm_borders(col = "red") +
+  tm_shape(posmo_trips) +
+  tm_dots(col = "rain_day") 
 ```
-
-
-# Visualisations 
-Wettefrage: 
-Boxplot Vergleich rain / no rain (x travelmode, y (temporal) duration, färbung rain no rain)
-
-Evt. map plot - rain no rain, convex hull 
-Table Summary like best practice example 
-
-Weekend/Weekday Frage:
-Boxplot Vergleich weekend, weekday (x: travelmode, y: (spatial) distance, (spatial) velocity, (temporal) duration, färbung: weekend/weekday)
-
-Evt. map plot - weekend/weekday, convex hull 
-Table Summary like best practice example 
-
-Distance per hour of the day: 
-X-y plot Linienplot (x: hours, y: distance, trip (segment), färbung: Wochentag, Weekend/Weekday)
-
-Table Summary like best practice example 
-
-Evt. map plot - weekend/weekday, convex hull 
 
 
 # Project Text 
