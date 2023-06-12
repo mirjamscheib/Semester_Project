@@ -355,10 +355,21 @@ posmo <- read_delim("posmo_data/posmo_clean2.csv")
 #### Speed & Distance
 - thought: How about removing certain transport modes (funicular, horse, Other?)
 ```{r}
+# choose travelmodes which make sense (other and fu)
+posmo <- posmo |>
+  subset(transport_mode != "Other1" & transport_mode != "Funicular")
+
+# check if subsetting worked 
+unique(posmo$transport_mode)
+
 # Boxplot compare weekend/ weekday without grouping (overall steplength)
 ggplot(posmo, aes(transport_mode, log(steplength), fill = day_week)) +
   geom_boxplot() +
-  labs(title = "Travelled Distance per Transport Mode comparing Weekend vs. Weekday")
+  labs(title = "Travelled Distance per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
+  ylab("Log Steplength [m]") +
+  xlab("Transport Mode") +
+  scale_color_manual(values = c("weekday" = "red", "weekend" = "blue"), labels = c( "Weekday", "Weekend")) +
+  theme_minimal()
 
 #die Distanzen Walk pro Tag sind sehr hoch, das finde ich speziell.. stimmt das wirklich? Liegt es daran, dass wir nur wenige Personen haben? Gab es viele Fehlerfassungen der App? 
 
