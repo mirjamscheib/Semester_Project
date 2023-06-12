@@ -273,27 +273,85 @@ posmo <- posmo_sep |>
   subset(!is.infinite(speed)) 
 ```
 
+### - Calculate temporal window
+```{r}
+### Calculate temporal windows 
+# calculates time taken from each step to the next 
+# n_plus2 calculates an offset of 2 time steps
+posmo <- posmo |>
+  mutate(
+    n_plus1 = sqrt((lead(X) - X)^2 + (lead(Y) - Y)^2), # distance to pos + 10 seconds
+    n_plus2 = sqrt((lead(X, 2) - X)^2 + (lead(Y, 2) - Y)^2), # distance to pos +20 seconds
+    n_minus1 = sqrt((lag(X) - X)^2 + (lag(Y) - Y)^2), # distance to pos -10 seconds
+    n_minus2 = sqrt((lag(X, 2) - X)^2 + (lag(Y, 2) - Y)^2) # distance to pos -20 seconds
+  )
 
-### - Save cleaned, added dataset
+# ungroup() because when we apply rowwise() each row is a grouped individually which we don't want. 
+posmo <- posmo |>
+  rowwise()|>
+  mutate(
+    stepMean = mean(c(n_minus1, n_minus2, n_plus1, n_plus2))
+  ) |>
+  ungroup()
+
+# define static points to discard later 
+posmo <- posmo |>
+    ungroup() |>
+    mutate(static = stepMean < mean(stepMean, na.rm = TRUE))
+
+# Segment-based analysis
+# Assign segmet IDs and use them to remove short segments and calculate segment (trip) duration
+rle_id <- function(vec) {
+    x <- rle(vec)$lengths
+    as.factor(rep(seq_along(x), times = x))
+}
+
+# assign segment IDs to dataframe 
+posmo <- posmo |>
+    mutate(segment_id = rle_id(static))
+
+# check the resulted segments 
+unique(posmo$segment_id) 
+
+# For mean duration of trips per weekday/weekend-day remove static segments and segments with duration < 10 min
+# only movement segments
+posmo_trips <- posmo |>
+    filter(!static)
+    
+# calculate trip duration and trip distance
+posmo_trips <- posmo_trips |>
+  group_by(segment_id) |> 
+  mutate(trip_duration = sum(speed), trip_dis = sum(steplength))
+
+# remove trips that are shorter than 10min = 600s
+posmo_trips <- posmo_trips |>
+  subset(trip_duration > 600)
+```
+
+
+### - Save cleaned, added dataset one with all and one with segmented data
 ```{r}
 # save clean data in dataframe as .gpkg
 #st_write(posmo, "posmo_data/posmo_clean.gpkg")
 
-# save clean data set with .csv 
-write_csv(posmo, "posmo_data/posmo_clean1.csv")
+# save clean data set with .csv for all data
+write_csv(posmo, "posmo_data/posmo_clean2.csv")
+
+# save clean data set with .csv for segmented data
+write_csv(posmo_trips, "posmo_data/posmo_trips.csv")
 ```
 
 
 # - Research Questions 
 ## - Question 1: Miriam 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns?
-### - Load cleaned data
+### - Spatial Analysis
+#### - Load cleaned data
 ```{r}
 # load clean data 
-posmo <- read_delim("posmo_data/posmo_clean1.csv")
+posmo <- read_delim("posmo_data/posmo_clean2.csv")
 ```
 
-### Spatial Analysis
 #### - Speed & Distance
 - thought: How about removing certain transport modes (funicular, horse, Other?)
 ```{r}
@@ -318,162 +376,93 @@ question1_summary <- posmo |>
          percentage_speed = speed_mean/sum(speed_mean)*100)
 ```
 
-##### not clear if to leave 
+### - Temporal Analysis 
+#### - Load trips data 
 ```{r}
-# Barchart mean distance comparing weekend / weekday (steplength)
-ggplot(question1_summary, aes(transport_mode, steplength_mean, fill = day_week)) +
-  geom_bar(stat = "identity", position = "fill") +
-  labs(title = "Mean travelled distance for different Travelmodes compared between Weekend vs. Weekday")
-
-# Barchart mean velocity comparing weekend / weekday (speed)
-ggplot(question1_summary, aes(transport_mode, speed_mean, fill = day_week)) +
-  geom_bar(stat = "identity", position = "fill") +
-  labs(title = "Mean Velocity for different Travelmodes compared between Weekend vs. Weekday")
-
-# Barchart steplength comparing weekend / weekday (speed)
-ggplot(posmo, aes(transport_mode, speed, fill = day_week)) +
-  geom_bar(stat = "identity", position = "fill") +
-  labs(title = "Mean Velocity for different Travelmodes compared between Weekend vs. Weekday")
-
-# Barchart velocity comparing weekend / weekday (speed)
-ggplot(posmo, aes(transport_mode, steplength, fill = day_week)) +
-  geom_bar(stat = "identity", position = "fill") +
-  labs(title = "Mean Velocity for different Travelmodes compared between Weekend vs. Weekday")
+# load clean trips data 
+posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
-#### ! Duration 
-SPATIAL: movement pattern -> mean duration per weekday/workday
+#### - Duration 
+Mean duration of trips compared between Weekend vs. Weekday
 ```{r}
-### Calculate temporal windows ------------------------------------------------------
-# calculates time taken from each step to the next 
-# n_plus2 calculates an offset of 2 time steps
-posmo_calc <- posmo |>
-  mutate(
-    n_plus1 = sqrt((lead(X) - X)^2 + (lead(Y) - Y)^2), # distance to pos + 10 seconds
-    n_plus2 = sqrt((lead(X, 2) - X)^2 + (lead(Y, 2) - Y)^2), # distance to pos +20 seconds
-    n_minus1 = sqrt((lag(X) - X)^2 + (lag(Y) - Y)^2), # distance to pos -10 seconds
-    n_minus2 = sqrt((lag(X, 2) - X)^2 + (lag(Y, 2) - Y)^2) # distance to pos -20 seconds
-  )
-
-# ungroup() because when we apply rowwise() each row is a grouped individually which we don't want. 
-posmo <- posmo_calc |>
-  rowwise()|>
-  mutate(
-    stepMean = mean(c(n_minus1, n_minus2, n_plus1, n_plus2))
-  ) |>
-  ungroup()
-```
-
-Define static, than remove "static point"
-```{r}
-posmo <- posmo_calc |>
-    ungroup() |>
-    mutate(static = stepMean < mean(stepMean, na.rm = TRUE))
-
-posmo_nostatic <- posmo |>
-    filter(!static)
-
-posmo_nostatic |>
-    ggplot(aes(X, Y)) +
-    geom_path() +
-    geom_point() +
-    coord_fixed() +
-    theme(legend.position = "bottom")
-
-tmap_mode("view")
-
-tm_shape(posmo_nostatic) +
-  tm_dots()
-
-```
-
-Segment-based analysis
-Asign segmet IDs and use them to remove short segments and calculate segment (trip) duration
-```{r}
-rle_id <- function(vec) {
-    x <- rle(vec)$lengths
-    as.factor(rep(seq_along(x), times = x))
-}
-
-posmo <- posmo |>
-    mutate(segment_id = rle_id(static))
-
-head(posmo)
-unique(posmo$segment_id) #wie erwartet haben wir uuunzählige Segmente
-
-```
-
-For mean duration of trips per weekday/weekend-day remove static segments and segments with duration < 10 min
-```{r}
-#only movement segments
-posmo_trips <- posmo |>
-    filter(!static)
-    
-#calculate trip duration and trip distance
-posmo_trips <- posmo_trips |>
-  group_by(segment_id) |> 
-  mutate(trip_duration = sum(diff_s), trip_dis = sum(steplength_m))
-
-#remove trips that are shorter than 10min = 600s
-posmo_trips <- posmo_trips |>
-  subset(trip_duration > 600)
-
-```
-
-Calculate mean duration and mean dis of trips per day
-```{r}
-#mean trip duration looks odd, need to check that (!!)
+# Calculate mean duration and mean dis of trips per day
+# mean trip duration looks odd, need to check that (!!)
 posmo_trips |>
   group_by(segment_id) |>
   ggplot() +
-  geom_boxplot(aes(day_week, log(trip_duration/60))) +
+  geom_boxplot(aes(transport_mode, trip_duration/60, fill = day_week)) +
   labs(title = "mean trip duration [min] compared between weekend/weekday")
-  
-```
 
+#log(trip_duration/60) glaube ich nicht nötig
 
-```{r}
 #mean trip distance compared between weekend/weekday seems OK
 posmo_trips |>
   group_by(segment_id) |>
   ggplot() +
-  geom_boxplot(aes(day_week, trip_dis)) +
+  geom_boxplot(aes(transport_mode, trip_dis, fill = day_week)) +
   labs(title = "mean trip distance compared between weekend/weekday")
-  
 ```
 
-
-### Temporal Analysis 
-
-### Create Visual Maps 
+### - Create Visual Maps 
 ```{r}
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
 
-tmap_mode("view")
+# transform posmo data into an sf object 
+posmo_trips <- st_as_sf(posmo_trips, coords = c("X","Y"), crs = 2056) 
 
-# unsegmented visualisation 
-tm_shape(posmo) +
-  tm_dots(col = "day_week")
+# 1. add grouping variable to the sf object
+posmo_grouped <- group_by(posmo, dataset)
+
+posmo_trips_grouped <- group_by(posmo_trips, dataset)
+
+# 2. use summarise() to "dissolve" all point into a multipoint object
+posmo_smry <- summarise(posmo_grouped)
+
+posmo_trips_smry <- summarise(posmo_trips_grouped)
+
+
+# 3. run st_convex_hull()
+mcp_posmo <- st_convex_hull(posmo_smry)
+
+mcp_posmo_trips <- st_convex_hull(posmo_trips_smry)
 ```
 
 ```{r}
-# Check out histogram for speed frequencies
-hist(log10(posmo$speed), 100)
-```
+tmap_mode("view")
 
+# unsegmented visualisation 
+tm_shape(mcp_posmo) +
+  tm_fill(col = "dataset", alpha = 0.4) +
+  tm_shape(mcp_posmo) +
+  tm_borders(col = "red") +
+  tm_shape(posmo) +
+  tm_dots(col = "day_week") 
+
+# segmented visualisation 
+tm_shape(mcp_posmo_trips) +
+  tm_fill(col = "dataset", alpha = 0.4) +
+  tm_shape(mcp_posmo_trips) +
+  tm_borders(col = "red") +
+  tm_shape(posmo_trips) +
+  tm_dots(col = "day_week") 
+```
 
 ## - Question 2: Miriam
 Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
 Durchschnittliche Anzahl Reisen pro Tag? 
 
-### - Load cleaned data 
+### - Analysis
+#### - Load cleaned data 
 ```{r}
 # load clean data 
-posmo <- read_delim("posmo_data/posmo_clean1.csv")
+posmo <- read_delim("posmo_data/posmo_clean2.csv")
+
+posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
-### Analysis
+#### - Analysis with unsegmented posmo data
 ```{r}
 # round datetime to 1h 
 posmo_round <- posmo |>
@@ -484,17 +473,15 @@ posmo_round <- posmo |>
 posmo_hour <- posmo_round |>
   group_by(hour, weekday) |>
   summarise(mean_dis = mean(steplength, na.rm = TRUE),
-            mean_speed = mean(speed, na.rm = TRUE)) |> 
-  mutate(percentage_dis = mean_dis/sum(mean_dis)*100,
-         percentage_speed = mean_speed/sum(mean_speed)*100)
+            mean_speed = mean(speed, na.rm = TRUE))
 
 # mo-so with distance (steplength) travelled
-ggplot(posmo_hour, aes(hour, log(mean_dis), col = weekday)) +
+ggplot(posmo_hour, aes(hour, mean_dis, col = weekday)) +
   geom_point() +
   geom_line()
 
 # mo-so with speed 
-ggplot(posmo_hour, aes(hour, log(mean_speed), col = weekday)) +
+ggplot(posmo_hour, aes(hour, mean_speed, col = weekday)) +
   geom_point() +
   geom_line()
 
@@ -503,30 +490,72 @@ ggplot(posmo_hour, aes(hour, log(mean_speed), col = weekday)) +
 posmo_day <- posmo_round |>
   group_by(hour, day_week)|>
   summarise(mean_dis = mean(steplength, na.rm = TRUE),
-            mean_speed = mean(speed, na.rm = TRUE)) |> 
-  mutate(percentage_dis = mean_dis/sum(mean_dis)*100,
-         percentage_speed = mean_speed/sum(mean_speed)*100)
+            mean_speed = mean(speed, na.rm = TRUE)) 
 
 # weekend vs. weekday with distance (steplength) travelled
-ggplot(posmo_day, aes(hour, log(mean_dis), col = day_week)) +
+ggplot(posmo_day, aes(hour, mean_dis, col = day_week)) +
   geom_point() +
   geom_line()
 
 # weekend vs. weekday with speed
-ggplot(posmo_day, aes(hour, log(mean_speed), col = day_week)) +
+ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
+  geom_point() +
+  geom_line()
+```
+
+#### - Analysis with segmented posmo data 
+```{r}
+# jetzt das noch mit segmentierten Daten 
+# round datetime to 1h 
+posmo_round <- posmo_trips |>
+  mutate(hour = lubridate::hour(datetime))
+
+# create dataframe, which calculates mean steplength, speed per hour over all dates
+# here with weekdays 
+posmo_hour <- posmo_round |>
+  group_by(hour, weekday) |>
+  summarise(mean_dis = mean(steplength, na.rm = TRUE),
+            mean_speed = mean(speed, na.rm = TRUE), 
+            mean_duration = mean(trip_duration, na.rm = TRUE)) 
+
+# mo-so with distance (steplength) travelled
+ggplot(posmo_hour, aes(hour, mean_dis, col = weekday)) +
   geom_point() +
   geom_line()
 
-# jetzt das noch mit segmentierten Daten 
-```
+# mo-so with speed 
+ggplot(posmo_hour, aes(hour, mean_speed, col = weekday)) +
+  geom_point() +
+  geom_line()
+
+# mo-so with trip duration  
+ggplot(posmo_hour, aes(hour, mean_duration/60, col = weekday)) +
+  geom_point() +
+  geom_line()
 
 
-```{r}
-posmo_hours |>
-  group_by(segment_id) |>
-  ggplot() +
-  geom_bar(aes(trip_dis, colour = time_round)) +
-  labs(title = "mean trip distance per hour of the day")
+# create dataframe, which calculates mean steplength, speed per hour over all dates
+# here with days of the week (weekend vs. weekday)
+posmo_day <- posmo_round |>
+  group_by(hour, day_week)|>
+  summarise(mean_dis = mean(steplength, na.rm = TRUE),
+            mean_speed = mean(speed, na.rm = TRUE),
+            mean_duration = mean(trip_duration, na.rm = TRUE)) 
+
+# weekend vs. weekday with distance (steplength) travelled
+ggplot(posmo_day, aes(hour, mean_dis, col = day_week)) +
+  geom_point() +
+  geom_line()
+
+# weekend vs. weekday with speed
+ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
+  geom_point() +
+  geom_line()
+
+# weekend vs. weekday with trip duration 
+ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
+  geom_point() +
+  geom_line()
 ```
 
 
@@ -536,17 +565,14 @@ Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns
 - temporal: mean distance per weekend-day or workday-day
 2. Unterscheiden zwischen regentaugliche, regenuntaugliche Transport modes (Fragestellung anpassen zu regentauglich, nicht regentauglich)
 
-Outputs:
-Boxplot duration, distance, velocity for rain/ no rain
-Convex Hull per user 
-
-### - Load cleaned data 
+### - Spatial Analysis 
+#### - Load cleaned data 
 ```{r}
 # load clean data 
-posmo <- read_delim("posmo_data/posmo_clean1.csv")
+posmo <- read_delim("posmo_data/posmo_clean2.csv")
 ```
 
-### Spatial Analysis 
+#### Speed & Distance 
 ```{r}
 # Boxplot compare weekend/ weekday without grouping (overall steplength)
 ggplot(posmo, aes(transport_mode, log(steplength), fill = rain_day)) +
@@ -585,6 +611,9 @@ ggplot() +
 ```
 
 ### Temporal Analysis 
+#### Load trips data
+
+#### Duration 
 
 ### Create Visual Maps 
 ```{r}
