@@ -397,7 +397,7 @@ question1_summary <- posmo |>
 posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
-#### Farben anpassen - Duration 
+#### Duration 
 Mean duration of trips compared between Weekend vs. Weekday
 ```{r}
 # choose travelmodes which make sense (other and fu)
@@ -415,7 +415,7 @@ ggplot() +
    labs(title = "Trip Duration per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
   ylab("Duration [min]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("weekday" = "cyan", "weekend" = "blue"), labels = c( "Weekday", "Weekend")) +
+  scale_fill_manual(values = c("weekday" = "red", "weekend" = "blue"), labels = c( "Weekday", "Weekend")) +
   theme_minimal()
 
 #log(trip_duration/60) glaube ich nicht nötig
@@ -623,6 +623,7 @@ ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
   labs(title = "Mean Trip Duration over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend vs. Weekday") +
   ylab("Mean Duration [min]") +
   xlab("Hour") +
+  scale_color_manual(values = c("weekday" = "red", "weekend" = "blue", labels = c("Weekday", "Weekend"))) +
   theme_minimal()
 ```
 
@@ -685,7 +686,7 @@ posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
 #### Duration 
-Mean duration of trips compared between Weekend vs. Weekday
+Mean duration of trips compared between Rain and Dry Days
 ```{r}
 # choose travelmodes which make sense (other and funicula excluding)
 posmo_trips <- posmo_trips |>
@@ -706,9 +707,9 @@ ggplot() +
 
 # mean trip distance compared between rain/no rain
 ggplot() +
-  geom_boxplot(data = posmo_trips, aes(transport_mode, trip_dis, fill = rain_day)) +
+  geom_boxplot(data = posmo_trips, aes(transport_mode, log(trip_dis), fill = rain_day)) +
     labs(title = "Speed per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
-  ylab("Distance [m]") +
+  ylab("Log Distance [m]") +
   xlab("Transport Mode") +
   scale_fill_manual(values = c("no_rain" = "red", "rain" = "blue"), labels = c( "Dry", "Rain")) +
   theme_minimal()
