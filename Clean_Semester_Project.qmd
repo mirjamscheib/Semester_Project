@@ -368,15 +368,18 @@ ggplot(posmo, aes(transport_mode, log(steplength), fill = day_week)) +
   labs(title = "Travelled Distance per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
   ylab("Log Steplength [m]") +
   xlab("Transport Mode") +
-  scale_color_manual(values = c("weekday" = "red", "weekend" = "blue"), labels = c( "Weekday", "Weekend")) +
+  scale_fill_manual(values = c("weekday" = "red", "weekend" = "blue"), labels = c( "Weekday", "Weekend")) +
   theme_minimal()
 
-#die Distanzen Walk pro Tag sind sehr hoch, das finde ich speziell.. stimmt das wirklich? Liegt es daran, dass wir nur wenige Personen haben? Gab es viele Fehlerfassungen der App? 
 
 # Boxplot compare weekend/ weekday without grouping (overall speed)
 ggplot(posmo, aes(transport_mode, log(speed), fill = day_week)) +
   geom_boxplot() +
-  labs(title = "Speed per Transport Mode comparing Weekend vs. Weekday")
+  labs(title = "Speed per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
+  ylab("Log Speed [m/s]") +
+  xlab("Transport Mode") +
+  scale_fill_manual(values = c("weekday" = "red", "weekend" = "blue"), labels = c( "Weekday", "Weekend")) +
+  theme_minimal()
 
 # Table Summary 
 question1_summary <- posmo |> 
