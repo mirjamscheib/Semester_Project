@@ -7,7 +7,7 @@ format: html
 It is known that several factors influence spatio-temporal movement of people. Like weather (Quelle), day of the week (quelle) and time of the day (quelle). 
 
 # Pre-Processing 
-## - Packages 
+## Packages 
 ```{r}
 # clear space 
 rm(list=ls())
@@ -27,7 +27,7 @@ library("plotly")
 
 ```
 
-## - Load Data 
+## Load Data 
 we exclude gps data, because of the inherent different nature of data structure of this dataset, which would make research work more complex
 ```{r}
 # load all posmo data --------------------------------------- 
@@ -44,7 +44,7 @@ posmo10 <- read_delim("posmo_data/posmo_e3.csv")
 posmo11 <- read_delim("posmo_data/posmo_validated_data_20230608.csv")
 ```
 
-## - Filter data/ create workable dataframe
+## Filter data/ create workable dataframe
 ```{r}
 # name users for easier data handling 
 posmo1 <- posmo1 |>  
@@ -95,7 +95,7 @@ posmo <- posmo |>
   mutate(datetime = as.POSIXct(datetime))
 ```
 
-### - Cut Dataset in Time
+### Cut Dataset in Time
 ```{r}
 # look at data consistency
 ggplot(posmo, aes(datetime, dataset))+
@@ -126,7 +126,7 @@ ggplot(posmo, aes(datetime, dataset))+
          geom_point()
 ```
 
-### - Remove outliers 
+### Remove outliers 
 ```{r}
 # delete trajectory data outside of switzerland (= delete outliers; norway & france): look at single posmo data to determine outliers 
 tmap_mode("view")
@@ -154,8 +154,8 @@ st_write(posmo_cut, "posmo_data/posmo_cut.gpkg")
 ```
 
 
-## - Add convenience variables 
-### - day/night, weekend/weekday
+## Add convenience variables 
+### day/night, weekend/weekday
 ```{r}
 # load outlier free data for shorter calculation time 
 posmo <- read_sf("posmo_data/posmo_cut.gpkg")
@@ -189,7 +189,7 @@ posmo <- posmo |>
   select(-ICC, -NAME)
 ```
 
-### - rain/no rain 
+### rain/no rain 
 Meaning of the columns in weather: 
 - tre200s0 = Air temperature 2 m above ground (momentary value in °C)
 - rco150z0 = Precipitation duration in ten-minute sum 
@@ -233,7 +233,7 @@ posmo_added <- posmo_added |>
   mutate(rain = ifelse(rco150z0 %in% c(0, NA), "no_rain", "rain"))
 ```
 
-### - rainy / not rainy day
+### rainy / not rainy day
 ```{r}
 # calculate rainy, not rainy days 
 posmo <- posmo_added |>
@@ -242,7 +242,7 @@ posmo <- posmo_added |>
          rain_day = ifelse(sum_rain < 85, "no_rain", "rain")) # hier noch threshold festlegen 
 ```
 
-## - Function to calculate metrics used 
+## Function to calculate metrics used 
 ```{r}
 # write function to calculate steplength, timelag 
 # function to calculate steplength
@@ -273,7 +273,7 @@ posmo <- posmo_sep |>
   subset(!is.infinite(speed)) 
 ```
 
-### - Calculate temporal window
+### Calculate temporal window
 ```{r}
 ### Calculate temporal windows 
 # calculates time taken from each step to the next 
@@ -329,7 +329,7 @@ posmo_trips <- posmo_trips |>
 ```
 
 
-### - Save cleaned, added dataset one with all and one with segmented data
+### Save cleaned, added dataset one with all and one with segmented data
 ```{r}
 # save clean data in dataframe as .gpkg
 #st_write(posmo, "posmo_data/posmo_clean.gpkg")
@@ -342,17 +342,17 @@ write_csv(posmo_trips, "posmo_data/posmo_trips.csv")
 ```
 
 
-# - Research Questions 
-## - Question 1: Miriam 
+# Research Questions 
+## Question 1: Miriam 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns?
-### - Spatial Analysis
-#### - Load cleaned data
+### Spatial Analysis
+#### Load cleaned data
 ```{r}
 # load clean data 
 posmo <- read_delim("posmo_data/posmo_clean2.csv")
 ```
 
-#### - Speed & Distance
+#### Speed & Distance
 - thought: How about removing certain transport modes (funicular, horse, Other?)
 ```{r}
 # Boxplot compare weekend/ weekday without grouping (overall steplength)
@@ -376,14 +376,14 @@ question1_summary <- posmo |>
          percentage_speed = speed_mean/sum(speed_mean)*100)
 ```
 
-### - Temporal Analysis 
-#### - Load trips data 
+### Temporal Analysis 
+#### Load trips data 
 ```{r}
 # load clean trips data 
 posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
-#### - Duration 
+#### Duration 
 Mean duration of trips compared between Weekend vs. Weekday
 ```{r}
 # Calculate mean duration and mean dis of trips per day
@@ -404,7 +404,7 @@ posmo_trips |>
   labs(title = "mean trip distance compared between weekend/weekday")
 ```
 
-### - Create Visual Maps 
+### Create Visual Maps 
 ```{r}
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
@@ -449,12 +449,12 @@ tm_shape(mcp_posmo_trips) +
   tm_dots(col = "day_week") 
 ```
 
-## - Question 2: Miriam
+## Question 2: Miriam
 Durchschnittliche Reisestrecke pro Tageszeit, gibt es Tageszeiten zu denen man eher längere/kürzere Strecken reist?  
 Durchschnittliche Anzahl Reisen pro Tag? 
 
-### - Analysis
-#### - Load cleaned data 
+### Analysis
+#### Load cleaned data 
 ```{r}
 # load clean data 
 posmo <- read_delim("posmo_data/posmo_clean2.csv")
@@ -462,7 +462,7 @@ posmo <- read_delim("posmo_data/posmo_clean2.csv")
 posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
-#### - Analysis with unsegmented posmo data
+#### Analysis with unsegmented posmo data
 ```{r}
 # round datetime to 1h 
 posmo_round <- posmo |>
@@ -503,7 +503,7 @@ ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
   geom_line()
 ```
 
-#### - Analysis with segmented posmo data 
+#### Analysis with segmented posmo data 
 ```{r}
 # jetzt das noch mit segmentierten Daten 
 # round datetime to 1h 
@@ -559,20 +559,20 @@ ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
 ```
 
 
-## - Question 3: Mirjam 
+## Question 3: Mirjam 
 Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns of students by foot and/or bicycle?
 - spatial: movement pattern (duration, distance, velocity)
 - temporal: mean distance per weekend-day or workday-day
 2. Unterscheiden zwischen regentaugliche, regenuntaugliche Transport modes (Fragestellung anpassen zu regentauglich, nicht regentauglich)
 
-### - Spatial Analysis 
-#### - Load cleaned data 
+### Spatial Analysis 
+#### Load cleaned data 
 ```{r}
 # load clean data 
 posmo <- read_delim("posmo_data/posmo_clean2.csv")
 ```
 
-#### - Speed & Distance 
+#### Speed & Distance 
 ```{r}
 # Boxplot compare weekend/ weekday without grouping (overall steplength)
 ggplot(posmo, aes(transport_mode, log(steplength), fill = rain_day)) +
@@ -611,13 +611,13 @@ ggplot() +
 ```
 
 ### Temporal Analysis 
-#### - Load trips data 
+#### Load trips data 
 ```{r}
 # load clean trips data 
 posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
-#### - Duration 
+#### Duration 
 Mean duration of trips compared between Weekend vs. Weekday
 ```{r}
 # Calculate mean duration and mean dis of trips per day
@@ -636,7 +636,7 @@ posmo_trips |>
   labs(title = "mean trip distance compared between rainy days vs. not rainy days")
 ```
 
-### - Create Visual Maps 
+### Create Visual Maps 
 ```{r}
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
@@ -683,7 +683,7 @@ tm_shape(mcp_posmo_trips) +
 
 
 # Project Text 
-1. Zeichenzählung einfügen 
+1. Zeichenzählung einfügen (DONE)
 2. Paper in Vorlesungsfolien (Zotero zitieren in Word)
 
 
