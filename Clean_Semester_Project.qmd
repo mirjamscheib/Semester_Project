@@ -355,7 +355,7 @@ posmo <- read_delim("posmo_data/posmo_clean2.csv")
 #### Speed & Distance
 - thought: How about removing certain transport modes (funicular, horse, Other?)
 ```{r}
-# choose travelmodes which make sense (other and fu)
+# choose travelmodes which make sense (other and funicula excluding)
 posmo <- posmo |>
   subset(transport_mode != "Other1" & transport_mode != "Funicular")
 
@@ -642,15 +642,31 @@ posmo <- read_delim("posmo_data/posmo_clean2.csv")
 
 #### Speed & Distance 
 ```{r}
-# Boxplot compare weekend/ weekday without grouping (overall steplength)
+# choose travelmodes which make sense (other and funicula excluding)
+posmo <- posmo |>
+  subset(transport_mode != "Other1" & transport_mode != "Funicular")
+
+# check if subsetting worked 
+unique(posmo$transport_mode)
+
+# Boxplot compare rain/ no rain without grouping (overall steplength)
 ggplot(posmo, aes(transport_mode, log(steplength), fill = rain_day)) +
   geom_boxplot() +
-  labs(title = "Travelled Distance per Transport Mode comparing Rainy Days vs. Not Rainy Days")
+  labs(title = "Travelled Distance per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
+  ylab("Log Steplength [m]") +
+  xlab("Transport Mode") +
+  scale_fill_manual(values = c("no_rain" = "red", "rain" = "blue"), labels = c( "Dry", "Rain")) +
+  theme_minimal()
 
-# Boxplot compare weekend/ weekday without grouping (overall speed)
+
+# Boxplot compare rain/ no rain without grouping (overall speed)
 ggplot(posmo, aes(transport_mode, log(speed), fill = rain_day)) +
   geom_boxplot() +
-  labs(title = "Speed per Transport Mode comparing Rainy Days vs. Not Rainy Days")
+   labs(title = "Speed per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
+  ylab("Log Speed [m/s]") +
+  xlab("Transport Mode") +
+  scale_fill_manual(values = c("no_rain" = "red", "rain" = "blue"), labels = c( "Dry", "Rain")) +
+  theme_minimal()
 
 # Table Summary 
 question2_summary <- posmo |> 
@@ -659,23 +675,6 @@ question2_summary <- posmo |>
             speed_mean = mean(speed, na.rm = T)) |> 
   mutate(percentage_steplength = steplength_mean/sum(steplength_mean)*100,
          percentage_speed = speed_mean/sum(speed_mean)*100)
-```
-
-```{r}
-# subset travel_modes for more closer look 
-mean_rain <- posmo |> 
-  subset(transport_mode == c("Walk", "Run", "Bike", "Train", "Tram", "Car", "Bus")) |>
-  group_by(rain_day, date) 
-
-# 3. visualise travelling distance for rain and no rain by foot & bike
-ggplot() +
-  geom_boxplot(data = mean_rain, aes(transport_mode, log(steplength), fill = rain_day)) +
-  labs(title = "Travelled distance compared between rainy days vs. not rainy days") 
-
-# 4. visualise speed for rain and no rain by bike & foot
-ggplot() +
-  geom_boxplot(data = mean_rain, aes(transport_mode, log(speed), fill = rain_day)) +
-  labs(title = "Velocity compared between rainy days vs. not rainy days") 
 ```
 
 ### Temporal Analysis 
@@ -688,23 +687,34 @@ posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
 #### Duration 
 Mean duration of trips compared between Weekend vs. Weekday
 ```{r}
+# choose travelmodes which make sense (other and funicula excluding)
+posmo_trips <- posmo_trips |>
+  subset(transport_mode != "Other1" & transport_mode != "Funicular")
+
+# check if subsetting worked 
+unique(posmo_trips$transport_mode)
+
 # Calculate mean duration and mean dis of trips per day
 # mean trip duration looks odd, need to check that (!!)
-posmo_trips |>
-  group_by(segment_id) |>
-  ggplot() +
-  geom_boxplot(aes(transport_mode, trip_duration/60, fill = rain_day)) +
-  labs(title = "mean trip duration [min] compared between rainy days vs. not rainy days")
+ggplot() +
+  geom_boxplot(data = posmo_trips, aes(transport_mode, trip_duration/60, fill = rain_day)) +
+  labs(title = "Travelled Distance per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
+  ylab("Duration [min]") +
+  xlab("Transport Mode") +
+  scale_fill_manual(values = c("no_rain" = "red", "rain" = "blue"), labels = c( "Dry", "Rain")) +
+  theme_minimal()
 
 # mean trip distance compared between rain/no rain
-posmo_trips |>
-  group_by(segment_id) |>
-  ggplot() +
-  geom_boxplot(aes(transport_mode, trip_dis, fill = rain_day)) +
-  labs(title = "mean trip distance compared between rainy days vs. not rainy days")
+ggplot() +
+  geom_boxplot(data = posmo_trips, aes(transport_mode, trip_dis, fill = rain_day)) +
+    labs(title = "Speed per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
+  ylab("Distance [m]") +
+  xlab("Transport Mode") +
+  scale_fill_manual(values = c("no_rain" = "red", "rain" = "blue"), labels = c( "Dry", "Rain")) +
+  theme_minimal()
 ```
 
-### Create Visual Maps 
+### Legende anschreiben - Create Visual Maps 
 ```{r}
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
