@@ -296,7 +296,7 @@ posmo <- posmo |>
 
 # define static points to discard later 
 posmo <- posmo |>
-    ungroup() |>
+    group_by(transport_mode) |>
     mutate(static = stepMean < mean(stepMean, na.rm = TRUE))
 
 # Segment-based analysis
@@ -323,7 +323,7 @@ posmo_trips <- posmo_trips |>
   group_by(segment_id) |> 
   mutate(trip_duration = sum(speed), trip_dis = sum(steplength))
 
-# remove trips that are shorter than 10min = 600s
+# remove trips that are shorter than 10min = 600s - probieren einzeln setzen oder weglassen 
 posmo_trips <- posmo_trips |>
   subset(trip_duration > 600)
 ```
@@ -352,7 +352,7 @@ Does the day of the week (weekend vs. workday) have an impact on spatio-temporal
 posmo <- read_delim("posmo_data/posmo_clean2.csv")
 ```
 
-#### Speed & Distance
+#### Segmentierte Daten nehmen - Speed & Distance
 - thought: How about removing certain transport modes (funicular, horse, Other?)
 ```{r}
 # choose travelmodes which make sense (other and funicula excluding)
@@ -422,12 +422,13 @@ ggplot() +
 
 #mean trip distance compared between weekend/weekday seems OK
   ggplot() +
-  geom_boxplot(data = posmo_trips, aes(transport_mode, log(trip_dis), fill = day_week)) +
+  geom_boxplot(data = posmo_trips, aes(day_week, log(trip_dis), fill = day_week)) +
   labs(title = "Trip Distance per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
   ylab("Log Distance [m]") +
   xlab("Transport Mode") +
   scale_fill_manual(values = c("weekday" = "red", "weekend" = "blue"), labels = c( "Weekday", "Weekend")) +
-  theme_minimal()
+    facet_wrap(~transport_mode, nrow = 1) +
+    theme_minimal()
 ```
 
 ### Layout anpassen- Create Visual Maps 
@@ -488,63 +489,6 @@ Durchschnittliche Anzahl Reisen pro Tag?
 posmo <- read_delim("posmo_data/posmo_clean2.csv")
 
 posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
-```
-
-#### Legende anschreiben - Analysis with unsegmented posmo data
-```{r}
-# round datetime to 1h 
-posmo_round <- posmo |>
-  mutate(hour = lubridate::hour(datetime))
-
-# create dataframe, which calculates mean steplength, speed per hour over all dates
-# here with weekdays 
-posmo_hour <- posmo_round |>
-  group_by(hour, weekday) |>
-  summarise(mean_dis = mean(steplength, na.rm = TRUE),
-            mean_speed = mean(speed, na.rm = TRUE))
-
-# mo-so with distance (steplength) travelled
-ggplot(posmo_hour, aes(hour, mean_dis, col = weekday)) +
-  geom_point() +
-  geom_line(lwd = 0.7) +
-  labs(title = "Mean Tavelled Distance over 24h", subtitle = "Compared from Monday to Sunday", color = "Day of the Week") +
-  ylab("Mean Distance [m]") +
-  xlab("Hour") +
-  theme_minimal()
-
-# mo-so with speed 
-ggplot(posmo_hour, aes(hour, mean_speed, col = weekday)) +
-  geom_point() +
-  geom_line(lwd = 0.7) +
-  labs(title = "Mean Speed over 24h", subtitle = "Compared from Monday to Sunday", color = "Day of the Week") +
-  ylab("Mean Speed [m/s]") +
-  xlab("Hour") +
-  theme_minimal()
-
-# create dataframe, which calculates mean steplength, speed per hour over all dates
-# here with days of the week (weekend vs. weekday)
-posmo_day <- posmo_round |>
-  group_by(hour, day_week)|>
-  summarise(mean_dis = mean(steplength, na.rm = TRUE),
-            mean_speed = mean(speed, na.rm = TRUE)) 
-
-# weekend vs. weekday with distance (steplength) travelled
-ggplot(posmo_day, aes(hour, mean_dis, col = day_week)) +
-  geom_point() +
-  geom_line(lwd = 0.7) +
-  labs(title = "Mean Tavelled Distance over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend vs. Weekday") +
-  ylab("Mean Distance [m]") +
-  xlab("Hour") +
-  theme_minimal()
-
-# weekend vs. weekday with speed
-ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
-  geom_point() +
-    geom_line(lwd = 0.7) +
-  labs(title = "Mean Speed over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend vs. Weekday") +
-  ylab("Mean Speed [m/s]") +
-  xlab("Hour") +
-  theme_minimal()
 ```
 
 #### Legende anschreiben - Analysis with segmented posmo data 
