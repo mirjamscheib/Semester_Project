@@ -30,6 +30,7 @@ library("plotly")
 ## Load Data 
 we exclude gps data, because of the inherent different nature of data structure of this dataset, which would make research work more complex
 ```{r}
+#| cache: true
 # load all posmo data --------------------------------------- 
 posmo1 <- read_delim("posmo_data/steinm05_posmo_2023_04_10_2023_05_15.csv")
 posmo2 <- read_delim("posmo_data/scheimir_posmo_2023-01-01T00_00_00+01_00-2023-05-15T23_59_59+02_00.csv")
@@ -46,6 +47,7 @@ posmo11 <- read_delim("posmo_data/posmo_validated_data_20230608.csv")
 
 ## Filter data/ create workable dataframe
 ```{r}
+#| cache: true
 # name users for easier data handling 
 posmo1 <- posmo1 |>  
   mutate(dataset = "posmo1")
@@ -97,6 +99,7 @@ posmo <- posmo |>
 
 ### Cut Dataset in Time
 ```{r}
+#| cache: true
 # look at data consistency
 ggplot(posmo, aes(datetime, dataset))+
          geom_point()
@@ -128,6 +131,7 @@ ggplot(posmo, aes(datetime, dataset))+
 
 ### Remove outliers 
 ```{r}
+#| cache: true
 # delete trajectory data outside of switzerland (= delete outliers; norway & france): look at single posmo data to determine outliers 
 tmap_mode("view")
 
@@ -150,13 +154,14 @@ tm_shape(posmo_cut) +
  tm_dots()
 
 # save cleaned dataset in an .gpkg file to shorten calculation time for subsequent analysing steps 
-st_write(posmo_cut, "posmo_data/posmo_cut.gpkg")
+st_write(posmo_cut, "posmo_data/posmo_cut.gpkg", delete_dsn = TRUE)
 ```
 
 
 ## Add convenience variables 
 ### day/night, weekend/weekday
 ```{r}
+#| cache: true
 # load outlier free data for shorter calculation time 
 posmo <- read_sf("posmo_data/posmo_cut.gpkg")
 
@@ -195,6 +200,7 @@ Meaning of the columns in weather:
 - rco150z0 = Precipitation duration in ten-minute sum 
 - sre00z0 = Sunshine duration ten-minute sum
 ```{r}
+#| cache: true
 # load all weather data 
 legend <- read_delim("data/weather_legend.csv")
 weather_raw <- read_delim("data/weather_measurements.csv") 
@@ -235,6 +241,7 @@ posmo_added <- posmo_added |>
 
 ### rainy / not rainy day
 ```{r}
+#| cache: true
 # calculate rainy, not rainy days 
 posmo <- posmo_added |>
   group_by(date) |>
@@ -244,7 +251,8 @@ posmo <- posmo_added |>
 
 ## Function to calculate metrics used 
 ```{r}
-# write function to calculate steplength, timelag 
+#| cache: true
+# writefunction to calculate steplength, timelag 
 # function to calculate steplength
 eucdist <- function(x, y) {
     steplength <- sqrt((lead(x, 2) - x)^2 + (lead(y, 2) - y)^2)
@@ -275,6 +283,7 @@ posmo <- posmo_sep |>
 
 ### Calculate temporal window
 ```{r}
+#| cache: true
 ### Calculate temporal windows 
 # calculates time taken from each step to the next 
 # n_plus2 calculates an offset of 2 time steps
@@ -331,6 +340,7 @@ posmo_trips <- posmo_trips |>
 
 ### Save cleaned, added dataset one with all and one with segmented data
 ```{r}
+#| cache: true
 # save clean data in dataframe as .gpkg
 #st_write(posmo, "posmo_data/posmo_clean.gpkg")
 
@@ -474,8 +484,7 @@ tm_shape(mcp_posmo_trips) +
   tm_shape(mcp_posmo_trips) +
   tm_borders(col = "red") +
   tm_shape(posmo_trips) +
-  tm_dots(col = "day_week") +
-  tm_legend(title = "Day of the Week", labels = c("Weekend", "Weekday"))
+  tm_dots(col = "day_week") 
 ```
 
 ## Question 2: Miriam
