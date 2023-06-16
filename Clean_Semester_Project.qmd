@@ -3,6 +3,12 @@ title: "Semester_Project"
 format: html
 ---
 
+# TO DOS 
+threshold trip duration & rain 
+Map visualization schön mache
+evt. removal of transport modes in pre pro 
+Boxplots vereinheitlichen 
+
 # Introduction 
 It is known that several factors influence spatio-temporal movement of people. Like weather (Quelle), day of the week (quelle) and time of the day (quelle). 
 
@@ -359,7 +365,7 @@ Does the day of the week (weekend vs. workday) have an impact on spatio-temporal
 #### Load cleaned data
 ```{r}
 # load clean data 
-posmo <- read_delim("posmo_data/posmo_clean2.csv")
+posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
 #### Segmentierte Daten nehmen - Speed & Distance
@@ -378,7 +384,7 @@ ggplot(posmo, aes(transport_mode, log(steplength), fill = day_week)) +
   labs(title = "Travelled Distance per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
   ylab("Log Steplength [m]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("weekday" = "red", "weekend" = "blue"), labels = c( "Weekday", "Weekend")) +
+  scale_fill_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3"), labels = c( "Weekday", "Weekend")) +
   theme_minimal()
 
 
@@ -388,7 +394,7 @@ ggplot(posmo, aes(transport_mode, log(speed), fill = day_week)) +
   labs(title = "Speed per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
   ylab("Log Speed [m/s]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("weekday" = "red", "weekend" = "blue"), labels = c( "Weekday", "Weekend")) +
+  scale_fill_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3"), labels = c( "Weekday", "Weekend")) +
   theme_minimal()
 
 # Table Summary 
@@ -404,39 +410,39 @@ question1_summary <- posmo |>
 #### Load trips data 
 ```{r}
 # load clean trips data 
-posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
+posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
 #### Duration 
 Mean duration of trips compared between Weekend vs. Weekday
 ```{r}
 # choose travelmodes which make sense (other and fu)
-posmo_trips <- posmo_trips |>
+posmo <- posmo |>
   subset(transport_mode != "Other1" & transport_mode != "Funicular")
 
 # check if subsetting worked 
-unique(posmo_trips$transport_mode)
+unique(posmo$transport_mode)
 
 # Calculate mean duration and mean dis of trips per day
 # mean trip duration looks odd, need to check that (!!)
 ggplot() +
-  geom_boxplot(data = posmo_trips, aes(transport_mode, trip_duration/60, fill =
+  geom_boxplot(data = posmo, aes(transport_mode, trip_duration/60, fill =
                                          day_week)) +
    labs(title = "Trip Duration per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
   ylab("Duration [min]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("weekday" = "red", "weekend" = "blue"), labels = c( "Weekday", "Weekend")) +
+  scale_fill_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3"), labels = c( "Weekday", "Weekend")) +
   theme_minimal()
 
 #log(trip_duration/60) glaube ich nicht nötig
 
 #mean trip distance compared between weekend/weekday seems OK
   ggplot() +
-  geom_boxplot(data = posmo_trips, aes(day_week, log(trip_dis), fill = day_week)) +
+  geom_boxplot(data = posmo, aes(day_week, log(trip_dis), fill = day_week)) +
   labs(title = "Trip Distance per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
   ylab("Log Distance [m]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("weekday" = "red", "weekend" = "blue"), labels = c( "Weekday", "Weekend")) +
+  scale_fill_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3"), labels = c( "Weekday", "Weekend")) +
     facet_wrap(~transport_mode, nrow = 1) +
     theme_minimal()
 ```
@@ -446,39 +452,23 @@ ggplot() +
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
 
-# transform posmo data into an sf object 
-posmo_trips <- st_as_sf(posmo_trips, coords = c("X","Y"), crs = 2056) 
 
 # 1. add grouping variable to the sf object
 posmo_grouped <- group_by(posmo, dataset)
 
-posmo_trips_grouped <- group_by(posmo_trips, dataset)
 
 # 2. use summarise() to "dissolve" all point into a multipoint object
 posmo_smry <- summarise(posmo_grouped)
 
-posmo_trips_smry <- summarise(posmo_trips_grouped)
-
-
 # 3. run st_convex_hull()
 mcp_posmo <- st_convex_hull(posmo_smry)
-
-mcp_posmo_trips <- st_convex_hull(posmo_trips_smry)
 ```
 
 ```{r}
 tmap_mode("view")
 
-# unsegmented visualisation 
-tm_shape(mcp_posmo) +
-  tm_fill(col = "dataset", alpha = 0.4) +
-  tm_shape(mcp_posmo) +
-  tm_borders(col = "red") +
-  tm_shape(posmo) +
-  tm_dots(col = "day_week") 
-
 # segmented visualisation 
-tm_shape(mcp_posmo_trips) +
+tm_shape(mcp_posmo) +
   tm_fill(col = "dataset", alpha = 0.4) +
   tm_legend(title = "User") +
   tm_shape(mcp_posmo_trips) +
@@ -495,16 +485,14 @@ Durchschnittliche Anzahl Reisen pro Tag?
 #### Load cleaned data 
 ```{r}
 # load clean data 
-posmo <- read_delim("posmo_data/posmo_clean2.csv")
-
-posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
+posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
 #### Legende anschreiben - Analysis with segmented posmo data 
 ```{r}
 # jetzt das noch mit segmentierten Daten 
 # round datetime to 1h 
-posmo_round <- posmo_trips |>
+posmo_round <- posmo |>
   mutate(hour = lubridate::hour(datetime))
 
 # create dataframe, which calculates mean steplength, speed per hour over all dates
@@ -576,7 +564,7 @@ ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
   labs(title = "Mean Trip Duration over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend vs. Weekday") +
   ylab("Mean Duration [min]") +
   xlab("Hour") +
-  scale_color_manual(values = c("weekday" = "red", "weekend" = "blue", labels = c("Weekday", "Weekend"))) +
+  scale_color_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3", labels = c("Weekday", "Weekend"))) +
   theme_minimal()
 ```
 
@@ -591,7 +579,7 @@ Does the weather condition (e.g. rain, sunshine) impact spatio-temporal patterns
 #### Load cleaned data 
 ```{r}
 # load clean data 
-posmo <- read_delim("posmo_data/posmo_clean2.csv")
+posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
 #### Speed & Distance 
@@ -609,7 +597,7 @@ ggplot(posmo, aes(transport_mode, log(steplength), fill = rain_day)) +
   labs(title = "Travelled Distance per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
   ylab("Log Steplength [m]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("no_rain" = "red", "rain" = "blue"), labels = c( "Dry", "Rain")) +
+  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "Dry", "Rain")) +
   theme_minimal()
 
 
@@ -619,7 +607,7 @@ ggplot(posmo, aes(transport_mode, log(speed), fill = rain_day)) +
    labs(title = "Speed per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
   ylab("Log Speed [m/s]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("no_rain" = "red", "rain" = "blue"), labels = c( "Dry", "Rain")) +
+  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "Dry", "Rain")) +
   theme_minimal()
 
 # Table Summary 
@@ -635,36 +623,36 @@ question2_summary <- posmo |>
 #### Load trips data 
 ```{r}
 # load clean trips data 
-posmo_trips <- read_delim("posmo_data/posmo_trips.csv")
+posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
 #### Duration 
 Mean duration of trips compared between Rain and Dry Days
 ```{r}
 # choose travelmodes which make sense (other and funicula excluding)
-posmo_trips <- posmo_trips |>
+posmo <- posmo |>
   subset(transport_mode != "Other1" & transport_mode != "Funicular")
 
 # check if subsetting worked 
-unique(posmo_trips$transport_mode)
+unique(posmo$transport_mode)
 
 # Calculate mean duration and mean dis of trips per day
 # mean trip duration looks odd, need to check that (!!)
 ggplot() +
-  geom_boxplot(data = posmo_trips, aes(transport_mode, trip_duration/60, fill = rain_day)) +
+  geom_boxplot(data = posmo, aes(transport_mode, trip_duration/60, fill = rain_day)) +
   labs(title = "Travelled Distance per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
   ylab("Duration [min]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("no_rain" = "red", "rain" = "blue"), labels = c( "Dry", "Rain")) +
+  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "Dry", "Rain")) +
   theme_minimal()
 
 # mean trip distance compared between rain/no rain
 ggplot() +
-  geom_boxplot(data = posmo_trips, aes(transport_mode, log(trip_dis), fill = rain_day)) +
+  geom_boxplot(data = posmo, aes(transport_mode, log(trip_dis), fill = rain_day)) +
     labs(title = "Speed per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
   ylab("Log Distance [m]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("no_rain" = "red", "rain" = "blue"), labels = c( "Dry", "Rain")) +
+  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "Dry", "Rain")) +
   theme_minimal()
 ```
 
@@ -673,39 +661,22 @@ ggplot() +
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
 
-# transform posmo data into an sf object 
-posmo_trips <- st_as_sf(posmo_trips, coords = c("X","Y"), crs = 2056) 
 
 # 1. add grouping variable to the sf object
 posmo_grouped <- group_by(posmo, dataset)
 
-posmo_trips_grouped <- group_by(posmo_trips, dataset)
-
 # 2. use summarise() to "dissolve" all point into a multipoint object
 posmo_smry <- summarise(posmo_grouped)
 
-posmo_trips_smry <- summarise(posmo_trips_grouped)
-
-
 # 3. run st_convex_hull()
 mcp_posmo <- st_convex_hull(posmo_smry)
-
-mcp_posmo_trips <- st_convex_hull(posmo_trips_smry)
 ```
 
 ```{r}
 tmap_mode("view")
 
-# unsegmented visualisation 
-tm_shape(mcp_posmo) +
-  tm_fill(col = "dataset", alpha = 0.4) +
-  tm_shape(mcp_posmo) +
-  tm_borders(col = "red") +
-  tm_shape(posmo) +
-  tm_dots(col = "rain_day") 
-
 # segmented visualisation 
-tm_shape(mcp_posmo_trips) +
+tm_shape(mcp_posmo) +
   tm_fill(col = "dataset", alpha = 0.4) +
   tm_shape(mcp_posmo_trips) +
   tm_borders(col = "red") +
