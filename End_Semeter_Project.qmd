@@ -1,8 +1,17 @@
 ---
-title: "Semester_Project"
-format: html
-execute: 
-  eval: true
+title: "Effects of environmental factors on spatio-temporal movement patterns of students"
+subtitle: "Project for Patterns and Trends in Environmental Data - Computational Movement Analysis"
+author: "Mirjam Scheib & Miriam Steinhauer"
+output: 
+  html_document:
+    code_folding: hide
+    fig_caption: yes
+    highlight: tango
+    number_sections: no
+    theme: journal
+    toc: yes
+    toc_depth: 2
+    toc_float: yes
 ---
 
 # TO DOS 
@@ -10,9 +19,13 @@ Map visualization schön mache
 Boxplots vereinheitlichen 
 
 # Introduction 
+It is known that several factors like weather condition (Brum-Bastos et al., 2018; Guo et al., 2022), day of the week and time of the day (Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal movement patterns of people. There are several study’s investigating movement patterns of people in urban areas with the aim to improve the distribution of facilities and the provision of transportation services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu et al., 2020). Nevertheless, most studies do not focus on specific groups (working people, students, elderlies), that might follow different spatio-temporal patterns, showing a potential demand for a specific adaption of the infrastructure. The canton of Zurich has the most students, with numbers continuing to rise. Also, the students make up a good proportion of the public transport commuter mass, which is why knowledge of spatio-temporal patterns of students could help to manage for example relief trains and other studying related infrastructure. Therefore, we want to investigate the influence of environmental factors on spatio-temporal movement patterns of students.
+
+
+Looking at only a subset (students) might show different patterns, students make up a big part in ÖV (Bundesamt für Statistik, 2021) especially around a Studentenstadt wie Zürich… (Medienmitteilung KT ZH, 2021). 
 
 ## Packages 
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # clear space 
 rm(list=ls())
 
@@ -29,6 +42,9 @@ library("SimilarityMeasures")
 library("lubridate")
 library("plotly")
 
+knitr::opts_chunk$set(echo = TRUE)
+options(warning=FALSE)    # Don't show warnings
+par(mfrow=c(1,1))         # Reset plot placement to normal 1 by 1
 ```
 
 # Results 
@@ -36,14 +52,14 @@ library("plotly")
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns?
 ### Spatial Analysis
 #### Load cleaned data
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # load clean data 
 posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
 #### Segmentierte Daten nehmen - Speed & Distance
 - thought: How about removing certain transport modes (funicular, horse, Other?)
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # Boxplot comparing Travelled Distance between weekend and weekday of travelmodes 
 ggplot(posmo, aes(day_week, log(steplength), fill = day_week)) +
   geom_boxplot() +
@@ -52,7 +68,8 @@ ggplot(posmo, aes(day_week, log(steplength), fill = day_week)) +
   xlab(" ") +
   scale_fill_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3"), labels = c( "Weekday", "Weekend")) +
   facet_wrap(~transport_mode, nrow = 1) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.x=element_blank())
 
 
 # Boxplot comparing Speed between weekend and weekday of travelmodes 
@@ -63,7 +80,8 @@ ggplot(posmo, aes(day_week, log(speed), fill = day_week)) +
   xlab("Transport Mode") +
   scale_fill_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3"), labels = c( "Weekday", "Weekend")) +
   facet_wrap(~transport_mode, nrow = 1) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.x=element_blank())
 
 # Table Summary 
 question1_summary <- posmo |> 
@@ -76,7 +94,7 @@ question1_summary <- posmo |>
 
 ### Temporal Analysis 
 #### Duration 
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # Boxplot comparing trip duration between weekend and weekday of travelmodes 
 ggplot() +
   geom_boxplot(data = posmo, aes(day_week, log(trip_duration/60), fill = day_week)) +
@@ -85,7 +103,8 @@ ggplot() +
   xlab("Transport Mode") +
   scale_fill_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3"), labels = c( "Weekday", "Weekend")) +
   facet_wrap(~transport_mode, nrow = 1) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.x=element_blank())
 
 # Boxplot comparing trip distance between weekend and weekday of travelmodes 
   ggplot() +
@@ -95,11 +114,12 @@ ggplot() +
   xlab("Transport Mode") +
   scale_fill_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3"), labels = c( "Weekday", "Weekend")) +
     facet_wrap(~transport_mode, nrow = 1) +
-    theme_minimal()
+    theme_minimal() +
+  theme(axis.text.x=element_blank())
 ```
 
 ### Layout anpassen- Create Visual Maps 
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
 
@@ -113,7 +133,7 @@ posmo_smry <- summarise(posmo_grouped)
 mcp_posmo <- st_convex_hull(posmo_smry)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 tmap_mode("view")
 
 # segmented visualisation 
@@ -129,13 +149,13 @@ tm_shape(mcp_posmo) +
 ## Q2: Comparing spatio-temporal Movement over 24h  
 ### Analysis
 #### Load cleaned data 
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # load clean data 
 posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
 #### Legende anschreiben - Analysis with segmented posmo data 
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # jetzt das noch mit segmentierten Daten 
 # round datetime to 1h 
 posmo_round <- posmo |>
@@ -218,13 +238,13 @@ ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
 ## Q3: Comparing spatio-temporal Movement between Rainy and Dry Days
 ### Spatial Analysis 
 #### Load cleaned data 
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # load clean data 
 posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
 #### Speed & Distance 
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # Boxplot compare rain/ no rain without grouping (overall steplength)
 ggplot(posmo, aes(transport_mode, log(steplength), fill = rain_day)) +
   geom_boxplot() +
@@ -232,7 +252,8 @@ ggplot(posmo, aes(transport_mode, log(steplength), fill = rain_day)) +
   ylab("Log Steplength [m]") +
   xlab("Transport Mode") +
   scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "Dry", "Rain")) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.x=element_blank())
 
 
 # Boxplot compare rain/ no rain without grouping (overall speed)
@@ -242,7 +263,8 @@ ggplot(posmo, aes(transport_mode, log(speed), fill = rain_day)) +
   ylab("Log Speed [m/s]") +
   xlab("Transport Mode") +
   scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "Dry", "Rain")) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.x=element_blank())
 
 # Table Summary 
 question2_summary <- posmo |> 
@@ -254,22 +276,9 @@ question2_summary <- posmo |>
 ```
 
 ### Temporal Analysis 
-#### Load trips data 
-```{r}
-# load clean trips data 
-posmo <- read_delim("posmo_data/posmo_trips.csv")
-```
-
 #### Duration 
 Mean duration of trips compared between Rain and Dry Days
-```{r}
-# choose travelmodes which make sense (other and funicula excluding)
-posmo <- posmo |>
-  subset(transport_mode != "Other1" & transport_mode != "Funicular")
-
-# check if subsetting worked 
-unique(posmo$transport_mode)
-
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # Calculate mean duration and mean dis of trips per day
 # mean trip duration looks odd, need to check that (!!)
 ggplot() +
@@ -278,7 +287,8 @@ ggplot() +
   ylab("Duration [min]") +
   xlab("Transport Mode") +
   scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "Dry", "Rain")) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.x=element_blank())
 
 # mean trip distance compared between rain/no rain
 ggplot() +
@@ -287,11 +297,12 @@ ggplot() +
   ylab("Log Distance [m]") +
   xlab("Transport Mode") +
   scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "Dry", "Rain")) +
-  theme_minimal()
+  theme_minimal() +
+  theme(axis.text.x=element_blank())
 ```
 
 ### Legende anschreiben - Create Visual Maps 
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
 
@@ -306,7 +317,7 @@ posmo_smry <- summarise(posmo_grouped)
 mcp_posmo <- st_convex_hull(posmo_smry)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 tmap_mode("view")
 
 # segmented visualisation 
@@ -318,9 +329,23 @@ tm_shape(mcp_posmo) +
   tm_dots(col = "rain_day") 
 ```
 
+# Literature 
+- Brum-Bastos, V. S., Long, J. A., & Demšar, U. (2018). Weather effects on human mobility: A study using multi-channel sequence analysis. Computers, Environment and Urban Systems, 71, 131–152. https://doi.org/10.1016/j.compenvurbsys.2018.05.004
 
-# Project Text 
-1. Zeichenzählung einfügen (DONE)
-2. Paper in Vorlesungsfolien (Zotero zitieren in Word)
+- Bundesamt für Statistik. (2021). Pendlermobilität. Bundesamt für Statistik. https://www.bfs.admin.ch/bfs/de/home/statistiken/mobilitaet-verkehr/personenverkehr/pendlermobilitaet.html
+
+- Guo, P., Sun, Y., Chen, Q., Li, J., & Liu, Z. (2022). The Impact of Rainfall on Urban Human Mobility from Taxi GPS Data. Sustainability, 14(15), Article 15. https://doi.org/10.3390/su14159355
+- Halsey, L. G. (2016). Terrestrial movement energetics: Current knowledge and its application to the optimising animal. Journal of Experimental Biology, 219(10), 1424–1431.
+
+- Kyaing, K., Lwin, K., & Sekimoto, Y. (2017). Human mobility patterns for different regions in Myanmar based on CDRs data. IPTEK Journal of Proceedings Series, 3(6).
+
+- Liu, X., Sun, L., Sun, Q., & Gao, G. (2020). Spatial Variation of Taxi Demand Using GPS Trajectories and POI Data. Journal of Advanced Transportation, 2020, e7621576.
+https://doi.org/10.1155/2020/7621576
+
+- Medienmitteilung KT ZH. (2021). Bildung in Zahlen. Kanton Zürich. https://www.zh.ch/de/news-uebersicht/medienmitteilungen/2021/07/bildung-in-zahlen.html
+
+- Sathishkumar, Cho, Y., & Jangwoo, Park. (2020). Seoul bike trip duration prediction using data mining techniques. IET Intelligent Transport Systems, 14(11), 1465–1474. https://doi.org/10.1049/iet-its.2019.0796
+
+
 
 
