@@ -285,16 +285,7 @@ Does the day of the week (weekend vs. workday) have an impact on spatio-temporal
 ```{r}
 # load clean data 
 posmo <- read_sf("posmo_data/posmo_clean.gpkg")
-# Mittlere Distanz gesamt ausrechnen (wie geht das pro Tag?) -------------------------
-# Convert timestamp to date format
-posmo$date <- as.Date(posmo$datetime)
 
-
-# Create an sf object from the dataframe with the appropriate CRS
-# posmo_sf <- st_as_sf(posmo, coords = c("X", "Y"), crs = 2056) # nicht nötig, weil schon sf object 
-
-# Transform the coordinates to the desired CRS if necessary
-# posmo_sf_transformed <- st_transform(posmo_sf, crs = "+init=EPSG:2056") nicht nötig weil schon transofrmiert 
 ```
 
 Calculate timelag, steplength and speed for posmo -> temporal
@@ -389,7 +380,7 @@ mean_travldis_per_weekday <- mean_travldis_per_date |>
 #die Distanzen pro Tag sind sehr hoch, das finde ich speziell.. stimmt das wirklich? Liegt es daran, dass wir nur wenige Personen haben? Gab es viele Fehlerfassungen der App? 
 ```
 
-SPATIAL: movement pattern -> mean duration per weekday/workday
+SPATIAL: movement pattern -> mean trip duration per weekday/workday
 ```{r}
 ### Calculate temporal windows ------------------------------------------------------
 # calculates time taken from each step to the next 
@@ -450,7 +441,7 @@ unique(posmo$segment_id) #wie erwartet haben wir uuunzählige Segmente
 
 ```
 
-For mean duration of trips per weekday/weekend-day remove static segments and segments with duration < 5min
+For mean duration of trips per weekday/weekend-day remove static segments and segments with duration < 10min
 ```{r}
 #only movement segments
 posmo_trips <- posmo |>
