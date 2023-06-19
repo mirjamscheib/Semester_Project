@@ -29,7 +29,7 @@ It is known that several factors like the weather condition (Brum-Bastos et al.,
 
 Does the day of the week (weekend vs. workday) have an influence on the spatio-temporal movement patterns of students?  
 
-Does the time of the day have an influence on the spatio-temporal movement patterns of students?  
+Does the time of the day compared between weekend/weekday have an influence on spatio-temporal movement patterns of students?  
 
 Does precipitation has an impact the spatio-temporal patterns of students?  
 
@@ -165,7 +165,7 @@ tm_shape(mcp_posmo) +
 ```
 
 ## 2| Impact of the time of the day 
-Does the time of the day have an influence on spatio-temporal movement patterns of students?
+Does the time of the day compared between weekend/weekday have an influence on spatio-temporal movement patterns of students?
 
 ```{r}
 #| label: load clean data
@@ -176,9 +176,7 @@ posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
 ```{r}
-### Spatial Analysis ###
-
-#| label: dataframe with mean steplenght, speer per hour of all dates
+#| label: prepro metrics for plots
 
 # round datetime to 1h 
 posmo_round <- posmo |>
@@ -204,50 +202,10 @@ posmo_day <- posmo_round |>
 
 
 ```{r}
+### Spatial Analysis ###
+
 #| label: visual map
 #| fig-cap: "..."
-
-# mo-so with distance (steplength) travelled
-ggplot(posmo_hour, aes(hour, mean_dis, col = weekday)) +
-  geom_point() +
-   geom_line(lwd = 0.7) +
-  labs(title = "Mean Tavelled Distance over 24h", subtitle = "Compared from Monday to Sunday", color = "Day of the Week") +
-  ylab("Mean Distance [m]") +
-  xlab("Hour") +
-  theme_minimal()
-```
-
-```{r}
-#| label: visual map
-#| fig-cap: "..."
-
-# mo-so with speed 
-ggplot(posmo_hour, aes(hour, mean_speed, col = weekday)) +
-  geom_point() +
-  geom_line(lwd = 0.7) +
-  labs(title = "Mean Speed over 24h", subtitle = "Compared from Monday to Sunday", color = "Day of the Week") +
-  ylab("Mean Speed [m/s]") +
-  xlab("Hour") +
-  theme_minimal()
-```
-
-```{r}
-#| label: visual map
-#| fig-cap: "..."
-
-# mo-so with trip duration  
-ggplot(posmo_hour, aes(hour, mean_duration/60, col = weekday)) +
-  geom_point() +
-  geom_line(lwd = 0.7) +
-  labs(title = "Mean Trip Duration over 24h", subtitle = "Compared from Monday to Sunday", color = "Day of the Week") +
-  ylab("Mean Duration [min]") +
-  xlab("Hour") +
-  theme_minimal()
-```
-
-
-
-```{r}
 
 
 # weekend vs. weekday with distance (steplength) travelled
@@ -260,7 +218,6 @@ ggplot(posmo_day, aes(hour, mean_dis, col = day_week)) +
   theme_minimal()
 ```
 
-
 ```{r}
 # weekend vs. weekday with speed
 ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
@@ -272,7 +229,9 @@ ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
   theme_minimal()
 ```
 
+
 ```{r}
+### Temproal Analysis ###
 
 # weekend vs. weekday with trip duration 
 ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
@@ -284,7 +243,6 @@ ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
   scale_color_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3", labels = c("Weekday", "Weekend"))) +
   theme_minimal()
 ```
-
 
 ## 3| Impact of precipitataion
 Does the weather condition (e.g. rain, no rain) impact spatio-temporal patterns of students on different travel modes?
