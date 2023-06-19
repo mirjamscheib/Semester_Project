@@ -5,21 +5,26 @@ execute:
   eval: true
 ---
 
-# TO DOS 
+# To Do's Code 
 threshold trip duration & rain 
 Map visualization schön mache
 evt. removal of transport modes in pre pro 
-Boxplots vereinheitlichen 
+Boxplots vereinheitlichen
+Captions für Plots/Bilder (figure 1, fig. 2 ect)
 
 # BACKGROUND AND RESEARCH QUESTIONS 
-It is known that several factors like weather condition (Brum-Bastos et al., 2018; Guo et al., 2022), day of the week and time of the day (Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal movement patterns of people. There are several study’s investigating movement patterns of people in urban areas with the aim to improve the distribution of facilities and the provision of transportation services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu et al., 2020). Nevertheless, most studies do not focus on specific groups (workforce, students, pensioners), that might follow different spatio-temporal patterns, showing a potential demand for a specific adaption of the infrastructure. The canton of Zurich has the most students, with numbers continuing to rise (Bundesamt für Statistik, 2023; Medienmitteilung Kanton ZH, 2021). Also, the students make up a good proportion of the public transport commuter mass, which is why knowledge of spatio-temporal patterns of students could help to manage for example relief trains and other studying related infrastructure (Bundesamt für Statistik, 2021). Therefore, we want to investigate the influence of environmental factors on spatio-temporal movement patterns of students. During the course of this study we are trying to answer the following research questions: 
-1. Does the day of the week (weekend vs. workday) have an influence on spatio-temporal movement patterns of students? 
-2. Does the time of the day have an influence on spatio-temporal movement patterns of students? 
-3. Does the weather condition (e.g. rain, no rain) impact spatio-temporal patterns of students on different travel modes?
+It is known that several factors like weather condition (Brum-Bastos et al., 2018; Guo et al., 2022), day of the week and time of the day (Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal movement patterns of people. There are several study’s investigating movement patterns of people in urban areas with the aim to improve the distribution of facilities and the provision of transportation services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu et al., 2020). Nevertheless, most studies do not focus on specific groups (workforce, students, pensioners), that might follow different spatio-temporal patterns, showing a potential demand for a specific adaption of the infrastructure. The canton of Zurich has the most students, with numbers continuing to rise (Bundesamt für Statistik, 2023; Medienmitteilung Kanton ZH, 2021). Also, the students make up a good proportion of the public transport commuter mass, which is why knowledge of spatio-temporal patterns of students could help to manage for example relief trains and other studying related infrastructure (Bundesamt für Statistik, 2021). Therefore, we want to investigate the influence of environmental factors on spatio-temporal movement patterns of students. During the course of this study we are trying to answer the following research questions:  
+1. Does the day of the week (weekend vs. workday) have an influence on spatio-temporal movement patterns of students?  
+2. Does the time of the day have an influence on spatio-temporal movement patterns of students?  
+3. Does the weather condition (e.g. rain, no rain) impact spatio-temporal patterns of students on different travel modes? 
 
+# DATA & METHODS
+## Data sets
+Text
+## Pre-Processing
+Text
 
-# Pre-Processing 
-## Packages 
+### Packages 
 ```{r}
 # clear space 
 rm(list=ls())
@@ -39,7 +44,7 @@ library("plotly")
 
 ```
 
-## Load Data 
+### Load Data 
 we exclude gps data, because of the inherent different nature of data structure of this dataset, which would make research work more complex
 ```{r}
 #| cache: false
@@ -57,7 +62,7 @@ posmo10 <- read_delim("posmo_data/posmo_e3.csv")
 posmo11 <- read_delim("posmo_data/posmo_validated_data_20230608.csv")
 ```
 
-## Filter data/ create workable dataframe
+### Filter data/ create workable dataframe
 ```{r}
 # name users for easier data handling 
 posmo1 <- posmo1 |>  
@@ -110,7 +115,7 @@ posmo <- posmo |>
 
 ```
 
-### Cut Dataset in Time
+#### Cut Dataset in Time
 ```{r}
 #| cache: false
 # look at data consistency
@@ -144,7 +149,7 @@ ggplot(posmo, aes(datetime, dataset))+
 knitr::opts_chunk$set(eval = FALSE)
 ```
 
-### Remove outliers 
+#### Remove outliers 
 ```{r}
 #| cache: false
 # delete trajectory data outside of switzerland (= delete outliers; norway & france): look at single posmo data to determine outliers 
@@ -187,8 +192,8 @@ st_write(posmo_cut, "posmo_data/posmo_cut.gpkg", delete_dsn = TRUE)
 ```
 
 
-## Add convenience variables 
-### day/night, weekend/weekday
+### Add convenience variables 
+#### day/night, weekend/weekday
 ```{r}
 #| label: read_sf
 #| cache: false
@@ -223,7 +228,7 @@ posmo <- posmo |>
   mutate(date = lubridate::date(datetime)) 
 ```
 
-### rain/no rain 
+#### rain/no rain 
 Meaning of the columns in weather: 
 - tre200s0 = Air temperature 2 m above ground (momentary value in °C)
 - rco150z0 = Precipitation duration in ten-minute sum 
@@ -268,7 +273,7 @@ posmo_added <- posmo_added |>
   mutate(rain = ifelse(rco150z0 %in% c(0, NA), "no_rain", "rain"))
 ```
 
-### rainy / not rainy day
+#### rainy / not rainy day
 ```{r}
 #| cache: false
 # calculate rainy, not rainy days 
@@ -278,7 +283,7 @@ posmo <- posmo_added |>
          rain_day = ifelse(sum_rain < 85, "no_rain", "rain")) # hier noch threshold festlegen 
 ```
 
-## Function to calculate metrics used 
+### Function to calculate metrics used 
 ```{r}
 #| cache: false
 # writefunction to calculate steplength, timelag 
@@ -310,7 +315,7 @@ posmo <- posmo_sep |>
   subset(!is.infinite(speed)) 
 ```
 
-### Calculate temporal window
+#### Calculate temporal window
 ```{r}
 #| cache: false
 ### Calculate temporal windows 
@@ -367,7 +372,7 @@ posmo_trips <- posmo_trips |>
 ```
 
 
-### Save cleaned, added dataset one with all and one with segmented data
+#### Save cleaned, added dataset one with all and one with segmented data
 ```{r}
 #| cache: false
 # save clean data in dataframe as .gpkg
@@ -381,7 +386,7 @@ write_csv(posmo_trips, "posmo_data/posmo_trips.csv")
 ```
 
 
-# Research Questions 
+# RESULTS 
 ## Question 1: Miriam 
 Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns?
 ### Spatial Analysis
@@ -708,8 +713,17 @@ tm_shape(mcp_posmo) +
 ```
 
 
-# Project Text 
-1. Zeichenzählung einfügen (DONE)
-2. Paper in Vorlesungsfolien (Zotero zitieren in Word)
+# DISCUSSION
+TEXT
+
+#SOURCES 
+## Data
+
+Where the weather data is from.. 
+Our data, see Methods
+
+## Literature
+-> Bibliogaphie einfügen aus word
+
 
 
