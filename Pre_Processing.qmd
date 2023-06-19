@@ -5,8 +5,10 @@ execute:
   eval: true
 ---
 
-# To do's 
+# TO DOS 
+threshold trip duration & rain 
 Map visualization schön mache
+evt. removal of transport modes in pre pro 
 Boxplots vereinheitlichen 
 
 
@@ -173,21 +175,21 @@ posmo <- posmo |>
 
 # Add concenience variables day vs. night (Day: 06:00 – 22:00, Night: 22:00 – 06:00) 
 # Define the start and end time ranges
-start_time <- as.POSIXct("06:00:00", format = "%H:%M:%S", tz = "UTC")
-end_time <- as.POSIXct("22:00:00", format = "%H:%M:%S", tz = "UTC")
+# start_time <- as.POSIXct("06:00:00", format = "%H:%M:%S", tz = "UTC")
+# end_time <- as.POSIXct("22:00:00", format = "%H:%M:%S", tz = "UTC")
 
 # Extract only the time component
-start_time <- format(start_time, format = "%H:%M:%S")
-end_time <- format(end_time, format = "%H:%M:%S")
+# start_time <- format(start_time, format = "%H:%M:%S")
+# end_time <- format(end_time, format = "%H:%M:%S")
 
 # create convenience variables day vs. night
-posmo <- posmo |>
-  mutate(time = format(datetime, format = "%H:%M:%S", tz = "UTC"), # Add convenience variable with only time 
-         day_night = ifelse(time >= start_time & time <= end_time, "night", "day"))
+# posmo <- posmo |>
+#   mutate(time = format(datetime, format = "%H:%M:%S", tz = "UTC"), # Add convenience variable with only time 
+#         day_night = ifelse(time >= start_time & time <= end_time, "night", "day"))
 
 
 # proof if convenience variables worked 
-unique(posmo$day_night)
+# unique(posmo$day_night)
 unique(posmo$day_week)
 
 # add convenience variable with date only (without time) and remove columns which are not used
@@ -323,7 +325,7 @@ posmo_trips <- posmo |>
 # calculate trip duration and trip distance
 posmo_trips <- posmo_trips |>
   group_by(segment_id) |> 
-  mutate(trip_duration = sum(speed/steplength), trip_dis = sum(steplength), trip_speed = sum(speed))
+  mutate(trip_duration = sum(speed), trip_dis = sum(steplength))
 
 # remove trips that are shorter than 10min = 600s - probieren einzeln setzen oder weglassen 
 #posmo_trips <- posmo_trips |>
