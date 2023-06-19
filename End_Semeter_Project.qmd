@@ -198,7 +198,6 @@ posmo_day <- posmo_round |>
 
 ```
 
-
 ```{r}
 ### Spatial Analysis ###
 
@@ -230,7 +229,6 @@ ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
   xlab("Hour") +
   theme_minimal()
 ```
-
 
 ```{r}
 ### Temproal Analysis ###
@@ -296,8 +294,6 @@ ggplot(posmo, aes(transport_mode, log(trip_speed), fill = rain_day)) +
   theme_minimal() 
 ```
 
-
-
 ```{r}
 ### Temporal Analysis ###
 
@@ -314,7 +310,6 @@ ggplot() +
   scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "No", "Yes")) +
   theme_minimal()
 ```
-
 
 ```{r}
 #| label: Create Visual Maps 
