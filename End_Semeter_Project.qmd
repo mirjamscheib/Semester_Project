@@ -31,7 +31,7 @@ Does the day of the week (weekend vs. workday) have an influence on the spatio-t
 
 Does the time of the day compared between weekend/weekday have an influence on spatio-temporal movement patterns of students?  
 
-Does precipitation has an impact the spatio-temporal patterns of students?  
+Does the weather condition (e.g. precipitation) have an impact the spatio-temporal patterns of students?  
 
 # DATA & METHODS
 ## Data sets
@@ -65,6 +65,17 @@ Does the day of the week (weekend vs. workday) have an impact on spatio-temporal
 posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
+```{r}
+#| label: Table summary
+question1_summary <- posmo |> 
+  group_by(day_week, transport_mode) |> 
+  summarise(steplength_mean = mean(steplength, na.rm = T),
+            speed_mean = mean(speed, na.rm = T)) |> 
+  mutate(percentage_steplength = steplength_mean/sum(steplength_mean)*100,
+         percentage_speed = speed_mean/sum(speed_mean)*100)
+
+question1_summary
+```
 
 ```{r}
 ### Spatial Analysis ###
@@ -100,18 +111,6 @@ ggplot(posmo, aes(day_week, log(trip_speed), fill = day_week)) +
 ```
 
 ```{r}
-#| label: Table summary
-question1_summary <- posmo |> 
-  group_by(day_week, transport_mode) |> 
-  summarise(steplength_mean = mean(steplength, na.rm = T),
-            speed_mean = mean(speed, na.rm = T)) |> 
-  mutate(percentage_steplength = steplength_mean/sum(steplength_mean)*100,
-         percentage_speed = speed_mean/sum(speed_mean)*100)
-
-question1_summary
-```
-
-```{r}
 ### Temporal Analysis ###
 
 #| label: Boxplot comparing trip duration between weekend and weekday of travelmodes
@@ -128,7 +127,6 @@ ggplot() +
   theme(axis.text.x=element_blank())
 
 ```
-
 
 ```{r}
 ### Create Visual Maps  ###
@@ -204,26 +202,30 @@ posmo_day <- posmo_round |>
 ```{r}
 ### Spatial Analysis ###
 
-#| label: visual map
-#| fig-cap: "..."
+#| label: Mean trip distance per hour of the day compared between weekend/weekday
+#| fig-cap: "Mean trip distance for every hour of the day on weekdays and weekends"
 
 
-# weekend vs. weekday with distance (steplength) travelled
 ggplot(posmo_day, aes(hour, mean_dis, col = day_week)) +
   geom_point() +
   geom_line(lwd = 0.7) +
-  labs(title = "Mean Tavelled Distance over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend vs. Weekday") +
+  labs(title = "Mean Trip Distance over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend / Weekday") +
+  scale_color_manual(values = c("weekday" = "mediumpurple4", "weekend" = "aquamarine3", labels = c("Weekday", "Weekend")))+
   ylab("Mean Distance [m]") +
   xlab("Hour") +
   theme_minimal()
 ```
 
 ```{r}
-# weekend vs. weekday with speed
+#| label: Mean trip speed per hour of the day compared between weekend/weekday
+#| fig-cap: "Mean trip speed for every hour of the day on weekdays and weekends"
+
+
 ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
   geom_point() +
   geom_line(lwd = 0.7) +
-  labs(title = "Mean Speed over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend vs. Weekday") +
+  labs(title = "Mean Speed over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend vs. Weekday") + 
+  scale_color_manual(values = c("weekday" = "mediumpurple4", "weekend" = "aquamarine3", labels = c("Weekday", "Weekend")))+
   ylab("Mean Speed [m/s]") +
   xlab("Hour") +
   theme_minimal()
@@ -233,51 +235,30 @@ ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
 ```{r}
 ### Temproal Analysis ###
 
-# weekend vs. weekday with trip duration 
+#| label: Mean trip duration per hour of the day compared between weekend/weekday
+#| fig-cap: "Mean trip duration for every hour of the day on weekdays and weekends"
+
 ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
   geom_point() +
     geom_line(lwd = 0.7) +
   labs(title = "Mean Trip Duration over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend vs. Weekday") +
   ylab("Mean Duration [min]") +
   xlab("Hour") +
-  scale_color_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3", labels = c("Weekday", "Weekend"))) +
+  scale_color_manual(values = c("weekday" = "mediumpurple4", "weekend" = "aquamarine3", labels = c("Weekday", "Weekend"))) +
   theme_minimal()
 ```
 
 ## 3| Impact of precipitataion
-Does the weather condition (e.g. rain, no rain) impact spatio-temporal patterns of students on different travel modes?
+Does the weather condition (e.g. precipitation) have an impact on spatio-temporal patterns of students on different travel modes?
 
-### Spatial Analysis 
-#### Load cleaned data 
-```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
-# load clean data 
+```{r}
+#| label: load clean data 
 posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
-#### Speed & Distance 
-```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
-# Boxplot compare rain/ no rain without grouping (overall steplength)
-ggplot(posmo, aes(transport_mode, log(steplength), fill = rain_day)) +
-  geom_boxplot() +
-  labs(title = "Travelled Distance per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
-  ylab("Log Steplength [m]") +
-  xlab("Transport Mode") +
-  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "Dry", "Rain")) +
-  theme_minimal() +
-  theme(axis.text.x=element_blank())
+```{r}
+#| label: Table Summary 
 
-
-# Boxplot compare rain/ no rain without grouping (overall speed)
-ggplot(posmo, aes(transport_mode, log(speed), fill = rain_day)) +
-  geom_boxplot() +
-   labs(title = "Speed per Transport Mode", subtitle = "Comparing days with/ without precipitation", fill = "precipitation") +
-  ylab("Log Speed [m/s]") +
-  xlab("Transport Mode") +
-  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "No", "Yes")) +
-  theme_minimal() +
-  theme(axis.text.x=element_blank())
-
-# Table Summary 
 question2_summary <- posmo |> 
   group_by(rain_day, transport_mode) |> 
   summarise(steplength_mean = mean(steplength, na.rm = T),
@@ -286,37 +267,60 @@ question2_summary <- posmo |>
          percentage_speed = speed_mean/sum(speed_mean)*100)
 ```
 
-### Temporal Analysis 
-#### Duration 
-Mean duration of trips compared between Rain and Dry Days
-```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
-# Calculate mean duration and mean dis of trips per day
+```{r}
+### Spatial Analysis ###
+
+#| label: mean trip distance depending on precipitation
+#| fig-cap: "Mean trip distance depending on precipitation status, where the trip distance is logarythmised"
+
+ggplot() +
+  geom_boxplot(data = posmo, aes(transport_mode, log(trip_dis), fill = rain_day)) +
+    labs(title = "Trip distances per Transport Mode", subtitle = "Comparing rainy with dry days", fill = "precipitation") +
+  ylab("Log Distance [m]") +
+  xlab("Transport Mode") +
+  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "No", "Yes")) +
+  theme_minimal() 
+```
+
+
+```{r}
+#| label: mean trip speed depending on precipitation
+#| fig-cap: "Mean trip speed depending on precipitation status, where the trip speed is logarythmised"
+
+ggplot(posmo, aes(transport_mode, log(trip_speed), fill = rain_day)) +
+  geom_boxplot() +
+   labs(title = "Speed per Transport Mode", subtitle = "Comparing rainy with dry days", fill = "precipitation") +
+  ylab("Log Speed [m/s]") +
+  xlab("Transport Mode") +
+  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "No", "Yes")) +
+  theme_minimal() 
+```
+
+
+
+```{r}
+### Temporal Analysis ###
+
+#| label: mean trip duration depending on precipitation
+#| fig-cap: "Mean trip duration depending on precipitation status"
+
+
 # mean trip duration looks odd, need to check that (!!)
 ggplot() +
   geom_boxplot(data = posmo, aes(transport_mode, trip_duration/60, fill = rain_day)) +
-  labs(title = "Travelled Distance per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
+  labs(title = "Trip duration per Transport Mode", subtitle = "Comparing rainy with dry days", fill = "precipitation") +
   ylab("Duration [min]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "Dry", "Rain")) +
-  theme_minimal() +
-  theme(axis.text.x=element_blank())
-
-# mean trip distance compared between rain/no rain
-ggplot() +
-  geom_boxplot(data = posmo, aes(transport_mode, log(trip_dis), fill = rain_day)) +
-    labs(title = "Speed per Transport Mode", subtitle = "Comparing Rainy vs. Dry Days", fill = "Rain vs. Dry") +
-  ylab("Log Distance [m]") +
-  xlab("Transport Mode") +
-  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "Dry", "Rain")) +
-  theme_minimal() +
-  theme(axis.text.x=element_blank())
+  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "No", "Yes")) +
+  theme_minimal()
 ```
 
-### Legende anschreiben - Create Visual Maps 
-```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
+
+```{r}
+#| label: Create Visual Maps 
+
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
-
 
 # 1. add grouping variable to the sf object
 posmo_grouped <- group_by(posmo, dataset)
@@ -328,7 +332,11 @@ posmo_smry <- summarise(posmo_grouped)
 mcp_posmo <- st_convex_hull(posmo_smry)
 ```
 
-```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
+```{r}
+#| label: create visual map
+#| fig-cap: "..." 
+
+#choose map mode
 tmap_mode("view")
 
 # segmented visualisation 
