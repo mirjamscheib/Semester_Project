@@ -168,7 +168,6 @@ tm_shape(mcp_posmo) +
 Does the time of the day have an influence on spatio-temporal movement patterns of students?
 
 ```{r}
-
 #| label: load clean data
 
 # load clean data 
@@ -177,6 +176,8 @@ posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
 ```{r}
+### Spatial Analysis ###
+
 #| label: dataframe with mean steplenght, speer per hour of all dates
 
 # round datetime to 1h 
@@ -187,11 +188,20 @@ posmo_round <- posmo |>
 # here with weekdays 
 posmo_hour <- posmo_round |>
   group_by(hour, weekday) |>
-  summarise(mean_dis = mean(steplength, na.rm = TRUE),
-            mean_speed = mean(speed, na.rm = TRUE), 
+  summarise(mean_dis = mean(trip_dis, na.rm = TRUE),
+            mean_speed = mean(trip_speed, na.rm = TRUE), 
+            mean_duration = mean(trip_duration, na.rm = TRUE)) 
+
+# create dataframe, which calculates mean steplength, speed per hour over all dates
+# here with days of the week (weekend vs. weekday)
+posmo_day <- posmo_round |>
+  group_by(hour, day_week)|>
+  summarise(mean_dis = mean(trip_dis, na.rm = TRUE),
+            mean_speed = mean(trip_speed, na.rm = TRUE),
             mean_duration = mean(trip_duration, na.rm = TRUE)) 
 
 ```
+
 
 ```{r}
 #| label: visual map
@@ -235,15 +245,7 @@ ggplot(posmo_hour, aes(hour, mean_duration/60, col = weekday)) +
   theme_minimal()
 ```
 
-```{r}
-# create dataframe, which calculates mean steplength, speed per hour over all dates
-# here with days of the week (weekend vs. weekday)
-posmo_day <- posmo_round |>
-  group_by(hour, day_week)|>
-  summarise(mean_dis = mean(steplength, na.rm = TRUE),
-            mean_speed = mean(speed, na.rm = TRUE),
-            mean_duration = mean(trip_duration, na.rm = TRUE)) 
-```
+
 
 ```{r}
 
