@@ -11,7 +11,7 @@ Map visualization schön mache
 evt. removal of transport modes in pre pro 
 Boxplots vereinheitlichen 
 
-# Introduction 
+# BACKGROUND AND RESEARCH QUESTIONS 
 It is known that several factors like weather condition (Brum-Bastos et al., 2018; Guo et al., 2022), day of the week and time of the day (Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal movement patterns of people. There are several study’s investigating movement patterns of people in urban areas with the aim to improve the distribution of facilities and the provision of transportation services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu et al., 2020). Nevertheless, most studies do not focus on specific groups (workforce, students, pensioners), that might follow different spatio-temporal patterns, showing a potential demand for a specific adaption of the infrastructure. The canton of Zurich has the most students, with numbers continuing to rise (Bundesamt für Statistik, 2023; Medienmitteilung Kanton ZH, 2021). Also, the students make up a good proportion of the public transport commuter mass, which is why knowledge of spatio-temporal patterns of students could help to manage for example relief trains and other studying related infrastructure (Bundesamt für Statistik, 2021). Therefore, we want to investigate the influence of environmental factors on spatio-temporal movement patterns of students. During the course of this study we are trying to answer the following research questions: 
 1. Does the day of the week (weekend vs. workday) have an influence on spatio-temporal movement patterns of students? 
 2. Does the time of the day have an influence on spatio-temporal movement patterns of students? 
