@@ -69,19 +69,19 @@ posmo <- read_delim("posmo_data/posmo_trips.csv")
 - thought: How about removing certain transport modes (funicular, horse, Other?)
 ```{r message=FALSE, warning=FALSE, eval = TRUE, echo = TRUE, fold = TRUE}
 # Boxplot comparing Travelled Distance between weekend and weekday of travelmodes 
-ggplot(posmo, aes(day_week, log(steplength), fill = day_week)) +
-  geom_boxplot() +
-  labs(title = "Travelled Distance per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
-  ylab("Log Steplength [m]") +
-  xlab(" ") +
-  scale_fill_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3"), labels = c( "Weekday", "Weekend")) +
-  facet_wrap(~transport_mode, nrow = 1) +
-  theme_minimal() +
-  theme(axis.text.x=element_blank())
+# ggplot(posmo, aes(day_week, log(steplength), fill = day_week)) +
+#   geom_boxplot() +
+#   labs(title = "Travelled Distance per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
+#   ylab("Log Steplength [m]") +
+#   xlab(" ") +
+#   scale_fill_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3"), labels = c( "Weekday", "Weekend")) +
+#   facet_wrap(~transport_mode, nrow = 1) +
+#   theme_minimal() +
+#   theme(axis.text.x=element_blank())
 
 
 # Boxplot comparing Speed between weekend and weekday of travelmodes 
-ggplot(posmo, aes(day_week, log(speed), fill = day_week)) +
+ggplot(posmo, aes(day_week, log(trip_speed), fill = day_week)) +
   geom_boxplot() +
   labs(title = "Speed per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
   ylab("Log Speed [m/s]") +
