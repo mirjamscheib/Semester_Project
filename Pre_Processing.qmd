@@ -6,9 +6,7 @@ execute:
 ---
 
 # TO DOS 
-threshold trip duration & rain 
 Map visualization schön mache
-evt. removal of transport modes in pre pro 
 Boxplots vereinheitlichen 
 
 
@@ -325,7 +323,7 @@ posmo_trips <- posmo |>
 # calculate trip duration and trip distance
 posmo_trips <- posmo_trips |>
   group_by(segment_id) |> 
-  mutate(trip_duration = sum(speed), trip_dis = sum(steplength))
+  mutate(trip_duration = sum(speed/steplength), trip_dis = sum(steplength), trip_speed = sum(speed))
 
 # remove trips that are shorter than 10min = 600s - probieren einzeln setzen oder weglassen 
 #posmo_trips <- posmo_trips |>
