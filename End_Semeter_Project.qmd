@@ -18,7 +18,6 @@ output:
 Map visualization schön mache
 Boxplots vereinheitlichen
 Captions für Plots/Bilder (figure 1, fig. 2 ect)
-Plots für Preprocessing übernehmen
 Titel die den Code beschreiben in Code-Boxen nehmen
 
 # BACKGROUND AND RESEARCH QUESTIONS 
