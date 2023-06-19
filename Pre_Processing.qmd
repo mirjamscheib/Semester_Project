@@ -5,10 +5,8 @@ execute:
   eval: true
 ---
 
-# TO DOS 
-threshold trip duration & rain 
+# To do's 
 Map visualization schön mache
-evt. removal of transport modes in pre pro 
 Boxplots vereinheitlichen 
 
 
