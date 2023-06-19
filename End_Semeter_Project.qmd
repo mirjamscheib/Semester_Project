@@ -8,36 +8,64 @@ format:
     code-fold: true
     code-tools: true
     code-line-numbers: true
-    table-of-contents: true
-    number-sections: true
+highlight-style: pygments
+table-of-contents: true
+number-sections: true
 execute:
   echo: true
   message: false
   eval: true
   warning: false
+editor: 
+  markdown: 
+    wrap: 72
 ---
 
-
 # To Do's im Code
-Map visualization schön mache (Mirj)
+
+Map visualization schön mache (Mirj) 
 Boxplots vereinheitlichen (Mirj)
-Captions für Plots/Bilder (figure 1, fig. 2 ect) (Miri)
-Titel die den Code beschreiben in Code-Boxen nehmen (Miri)
-Layout, rendern (Miri)
+Bitte die Plots die ich noch nicht habe noch beschriften oder verbessern, es fehlen Beschriftungen/Titel für die Tables und für die tmaps, da bin ich unsicher (@Mirj)
+Rendern (Miri)
 
-# BACKGROUND AND RESEARCH QUESTIONS 
-It is known that several factors like the weather condition (Brum-Bastos et al., 2018; Guo et al., 2022), the day of the week and time of the day (Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal movement patterns of people. There are several study’s investigating movement patterns of people in urban areas with the aim to improve the distribution of facilities and the provisioning of transportation services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu et al., 2020). Nevertheless, most studies do not focus on specific social groups (e.g. workforce, students, pensioners), that might follow distinct spatio-temporal patterns, showing a potential demand for a specific adaption of infrastructure. The canton of Zurich accommodates the most students in Switzerland, with numbers continuing to rise (Bundesamt für Statistik, 2023; Medienmitteilung Kanton ZH, 2021). Additionally, students and apprentices (from the age of  15 years) make up 39% of the public transport commuter mass, which is why knowledge of spatio-temporal patterns of students could help to manage train and other public transport infrastructure (Bundesamt für Statistik, 2021). Therefore, we want to investigate the influence of three environmental factors on spatio-temporal movement patterns of students, aiming to answer the following research questions:   
+# BACKGROUND AND RESEARCH QUESTIONS
 
-Does the day of the week (weekend vs. workday) have an influence on the spatio-temporal movement patterns of students?  
+It is known that several factors like the weather condition (Brum-Bastos
+et al., 2018; Guo et al., 2022), the day of the week and time of the day
+(Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal
+movement patterns of people. There are several study's investigating
+movement patterns of people in urban areas with the aim to improve the
+distribution of facilities and the provisioning of transportation
+services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu
+et al., 2020). Nevertheless, most studies do not focus on specific
+social groups (e.g. workforce, students, pensioners), that might follow
+distinct spatio-temporal patterns, showing a potential demand for a
+specific adaption of infrastructure. The canton of Zurich accommodates
+the most students in Switzerland, with numbers continuing to rise
+(Bundesamt für Statistik, 2023; Medienmitteilung Kanton ZH, 2021).
+Additionally, students and apprentices (from the age of 15 years) make
+up 39% of the public transport commuter mass, which is why knowledge of
+spatio-temporal patterns of students could help to manage train and
+other public transport infrastructure (Bundesamt für Statistik, 2021).
+Therefore, we want to investigate the influence of three environmental
+factors on spatio-temporal movement patterns of students, aiming to
+answer the following research questions:
 
-Does the time of the day compared between weekend/weekday have an influence on spatio-temporal movement patterns of students?  
+Does the day of the week (weekend vs. workday) have an influence on the
+spatio-temporal movement patterns of students?
 
-Does the weather condition (e.g. precipitation) have an impact the spatio-temporal patterns of students?  
+Does the time of the day compared between weekend/weekday have an
+influence on spatio-temporal movement patterns of students?
+
+Does the weather condition (e.g. precipitation) have an impact the
+spatio-temporal patterns of students?
 
 # DATA & METHODS
+
 ## Data sets
 
 ## Pre-processing
+
 ```{r}
 #| label: load packages and clean data
 
@@ -61,9 +89,12 @@ library("plotly")
 posmo <- read_delim("posmo_data/posmo_trips.csv")
 ```
 
-# RESULTS 
-## 1| Impact of the day of the week 
-Does the day of the week (weekend vs. workday) have an impact on spatio-temporal movement patterns?
+# RESULTS
+
+## Impact of the day of the week
+
+Does the day of the week (weekend vs. workday) have an impact on
+spatio-temporal movement patterns?
 
 ```{r}
 #| label: Table summary 1
@@ -76,12 +107,13 @@ question1_summary <- posmo |>
 
 question1_summary
 ```
+Table 1: Overview over the calculated metrics for weekends and weekdays, including the different travel modes
 
-```{r}
-### Spatial Analysis ###
-
+### Spatial Analysis
+*Trip distance* 
+For each travelmode we found a higher trip distance on weekends compared to weekdays. The trip distances for the travel mode "walk" have a lower mean than for other travel modes. On the other hand, the mean travel distances for "bike" are around the same range as for "car" and "train". 
+```{r, fig.cap = "Figure 1: Trip distance per transport mode comparing weekends and weekdays, the trip distance is logarythmised"}
 #| label: Boxplot comparing trip distance between weekend and weekday of travelmodes
-#| fig-cap: "Trip distance per transport mode comparing weekends and weekdays, the trip distance is logarythmised"
 
   ggplot() +
   geom_boxplot(data = posmo, aes(day_week, log(trip_dis), fill = day_week)) +
@@ -94,10 +126,11 @@ question1_summary
   theme(axis.text.x=element_blank())
 
 ```
+*Trip speed*
+For trip speed, the results are not as clear as for trip distance, but there is a tendency of trip speed being higher on the weekends, than during the week. Again we find the mean trip speed of "bike" being in a similar range as "car" and "train", whereas "bus" conforms to "horse".
 
-```{r}
+```{r, fig.cap = "Figure 2: Trip speed per transport mode comparing weekends and weekdays, the trip speed is logarythmised"}
 #| label: Boxplot comparing trip speed between weekend and weekday of travelmodes
-#| fig-cap: "Trip speed per transport mode comparing weekends and weekdays, the trip speed is logarythmised"
 
 ggplot(posmo, aes(day_week, log(trip_speed), fill = day_week)) +
   geom_boxplot() +
@@ -109,12 +142,14 @@ ggplot(posmo, aes(day_week, log(trip_speed), fill = day_week)) +
   theme_minimal() +
   theme(axis.text.x=element_blank())
 ```
+### Temporal Analysis
+*Trip duration*
+We could not find a clear result concerning trip duration between weekends and weekdays. The only tendency that can be seen, is that the mean trip duration of "walk" is lower than for all the other travel modes.
 
-```{r}
-### Temporal Analysis ###
+```{r, fig.cap = "Figure 3: Trip duration per transport mode comparing weekends and weekdays, the trip duration is logarythmised"}
+
 
 #| label: Boxplot comparing trip duration between weekend and weekday of travelmodes
-#| fig_cap: "Trip duration per transport mode comparing weekends and weekdays, the trip duration is logarythmised"
 
 ggplot() +
   geom_boxplot(data = posmo, aes(day_week, log(trip_duration/60), fill = day_week)) +
@@ -128,9 +163,8 @@ ggplot() +
 
 ```
 
-```{r}
-### Create Visual Maps  ###
-#| label: transform posmo data into sf object
+```{r, fig.cap = "Figure 4: ..."}
+#| label: prepro and creation of visual map with convex hull
 
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
@@ -143,11 +177,6 @@ posmo_smry <- summarise(posmo_grouped)
 
 # 3. run st_convex_hull()
 mcp_posmo <- st_convex_hull(posmo_smry)
-```
-
-```{r}
-#| label: visual map creation
-#| fig-cap: "..."
 
 
 # set visual mode
@@ -160,22 +189,19 @@ tm_shape(mcp_posmo) +
   tm_shape(mcp_posmo) +
   tm_borders(col = "red") +
   tm_shape(posmo) +
-  tm_dots(col = "day_week") 
+  tm_dots(col = "day_week")
 ```
 
-## 2| Impact of the time of the day 
-Does the time of the day compared between weekend/weekday have an influence on spatio-temporal movement patterns of students?
+## Impact of the time of the day
 
-```{r}
-#| label: load clean data posmo trips
-
-# load clean data 
-posmo <- read_delim("posmo_data/posmo_trips.csv")
-
-```
+Does the time of the day compared between weekend/weekday have an
+influence on spatio-temporal movement patterns of students?
 
 ```{r}
 #| label: prepro metrics for plots
+
+# load clean data 
+posmo <- read_delim("posmo_data/posmo_trips.csv")
 
 # round datetime to 1h 
 posmo_round <- posmo |>
@@ -199,27 +225,27 @@ posmo_day <- posmo_round |>
 
 ```
 
-```{r}
-### Spatial Analysis ###
+### Spatial Analysis
+*Trip distance*
+The result for the trip distances per hour and weekday encourages the previous result of trip distance per travel mode, as both results show higher trip distances on the weekends compared to on weekdays. Otherwise the results do not show clear patterns. Maybe a slight decrease of the trip distances towards the end of the day. 
+```{r, fig.cap = "Figure 5: Mean trip distance for every hour of the day on weekdays and weekends"}
 
 #| label: Mean trip distance per hour of the day compared between weekend/weekday
-#| fig-cap: "Mean trip distance for every hour of the day on weekdays and weekends"
-
 
 ggplot(posmo_day, aes(hour, mean_dis, col = day_week)) +
   geom_point() +
   geom_line(lwd = 0.7) +
-  labs(title = "Mean Trip Distance over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend / Weekday") +
+  labs(title = "Mean Trip Distance over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "weekend / weekday") +
   scale_color_manual(values = c("weekday" = "mediumpurple4", "weekend" = "aquamarine3", labels = c("Weekday", "Weekend")))+
   ylab("Mean Distance [m]") +
   xlab("Hour") +
   theme_minimal()
 ```
+*Trip speed*
+The pattern of a decreasing travel speed on the weekend towards the end of the day gets clearer in this result. Also, we found a higher trip speeds for weekends compared to on weekdays. 
 
-```{r}
+```{r, fig.cap = "Figure 6: Mean trip speed for every hour of the day on weekdays and weekends"}
 #| label: Mean trip speed per hour of the day compared between weekend/weekday
-#| fig-cap: "Mean trip speed for every hour of the day on weekdays and weekends"
-
 
 ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
   geom_point() +
@@ -231,11 +257,12 @@ ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
   theme_minimal()
 ```
 
-```{r}
-### Temproal Analysis ###
+### Temproal Analysis
+*Trip duration*
+The trip duration seems to rise slightly on both weekends and weekdays towards the end of the day. Otherwise we could not detect any pattern in this result. 
 
+```{r, fig.cap = "Figure 7: Mean trip duration for every hour of the day on weekdays and weekends"}
 #| label: Mean trip duration per hour of the day compared between weekend/weekday
-#| fig-cap: "Mean trip duration for every hour of the day on weekdays and weekends"
 
 ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
   geom_point() +
@@ -247,16 +274,16 @@ ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
   theme_minimal()
 ```
 
-## 3| Impact of precipitataion
-Does the weather condition (e.g. precipitation) have an impact on spatio-temporal patterns of students on different travel modes?
+## Impact of precipitataion
 
-```{r}
-#| label: load clean data again
-posmo <- read_delim("posmo_data/posmo_trips.csv")
-```
+Does the weather condition (e.g. precipitation) have an impact on
+spatio-temporal patterns of students on different travel modes?
 
 ```{r}
 #| label: Table Summary 2
+
+#load clean data
+posmo <- read_delim("posmo_data/posmo_trips.csv")
 
 question2_summary <- posmo |> 
   group_by(rain_day, transport_mode) |> 
@@ -264,13 +291,19 @@ question2_summary <- posmo |>
             speed_mean = mean(speed, na.rm = T)) |> 
   mutate(percentage_steplength = steplength_mean/sum(steplength_mean)*100,
          percentage_speed = speed_mean/sum(speed_mean)*100)
-```
 
-```{r}
-### Spatial Analysis ###
+question2_summary
+```
+Table 2: Overview over calculated metrics for weekday/weekend including the precipitation data
+
+### Spatial Analysis
+*Trip distance*
+Precipitation had no major effect on trip distance when travelling by horse, train, tram and foot. Trip distance was longer on days with high precipitation when students travelled by bike, bus and car.  
+
+```{r, fig.cap = "Figure 8: Mean trip distance depending on precipitation status, where the trip distance is logarythmised"}
+
 
 #| label: mean trip distance depending on precipitation
-#| fig-cap: "Mean trip distance depending on precipitation status, where the trip distance is logarythmised"
 
 ggplot() +
   geom_boxplot(data = posmo, aes(transport_mode, log(trip_dis), fill = rain_day)) +
@@ -281,10 +314,10 @@ ggplot() +
   theme_minimal() 
 ```
 
-
-```{r}
+*Trip speed*
+Speed at high precipitation is slightly slower when travelling by horse, train and tram, while for travelmodes by bike, bus, car and foot travelling speed per trips were marginally higher at rainy days.   
+```{r, fig.cap = "Figure 9: Mean trip speed depending on precipitation status, where the trip speed is logarythmised"}
 #| label: mean trip speed depending on precipitation
-#| fig-cap: "Mean trip speed depending on precipitation status, where the trip speed is logarythmised"
 
 ggplot(posmo, aes(transport_mode, log(trip_speed), fill = rain_day)) +
   geom_boxplot() +
@@ -295,14 +328,12 @@ ggplot(posmo, aes(transport_mode, log(trip_speed), fill = rain_day)) +
   theme_minimal() 
 ```
 
-```{r}
-### Temporal Analysis ###
-
+### Temporal Analysis
+*Trip duration*
+Precipitation had no major effect on trip duration when travelling by bus, horse and foot. Trip duration was longer on days with no/less precipitation when students travelled by train and tram, while it shows that students travelled longer by car and bike on days with high precipitation.  
+```{r, fig.cap= "Figure 10: Mean trip duration depending on precipitation status"}
 #| label: mean trip duration depending on precipitation
-#| fig-cap: "Mean trip duration depending on precipitation status"
 
-
-# mean trip duration looks odd, need to check that (!!)
 ggplot() +
   geom_boxplot(data = posmo, aes(transport_mode, trip_duration/60, fill = rain_day)) +
   labs(title = "Trip duration per Transport Mode", subtitle = "Comparing rainy with dry days", fill = "precipitation") +
@@ -312,8 +343,8 @@ ggplot() +
   theme_minimal()
 ```
 
-```{r}
-#| label: Create Visual Maps 
+```{r, fig.cap = "Figure 11: ..."}
+#| label: create visual map rain
 
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
@@ -326,11 +357,6 @@ posmo_smry <- summarise(posmo_grouped)
 
 # 3. run st_convex_hull()
 mcp_posmo <- st_convex_hull(posmo_smry)
-```
-
-```{r}
-#| label: create visual map rain
-#| fig-cap: "..."
 
 #choose map mode
 tmap_mode("view")
@@ -344,33 +370,46 @@ tm_shape(mcp_posmo) +
   tm_dots(col = "rain_day") 
 ```
 
-
-#DISCUSSION 
-TEXT 
-
+# DISCUSSION 
+TEXT
 
 # SOURCES
 
 ## Data
--> woher war regendatenset 
+
+--> woher war regendatenset
 
 ## Literature
-- Brum-Bastos, V. S., Long, J. A., & Demšar, U. (2018). Weather effects on human mobility: A study using multi-channel sequence analysis. Computers, Environment and Urban Systems, 71, 131–152. https://doi.org/10.1016/j.compenvurbsys.2018.05.004
 
-- Bundesamt für Statistik. (2021). Pendlermobilität. Bundesamt für Statistik. https://www.bfs.admin.ch/bfs/de/home/statistiken/mobilitaet-verkehr/personenverkehr/pendlermobilitaet.html
+-   Brum-Bastos, V. S., Long, J. A., & Demšar, U. (2018). Weather
+    effects on human mobility: A study using multi-channel sequence
+    analysis. Computers, Environment and Urban Systems, 71, 131--152.
+    https://doi.org/10.1016/j.compenvurbsys.2018.05.004
 
-- Guo, P., Sun, Y., Chen, Q., Li, J., & Liu, Z. (2022). The Impact of Rainfall on Urban Human Mobility from Taxi GPS Data. Sustainability, 14(15), Article 15. https://doi.org/10.3390/su14159355
-- Halsey, L. G. (2016). Terrestrial movement energetics: Current knowledge and its application to the optimising animal. Journal of Experimental Biology, 219(10), 1424–1431.
+-   Bundesamt für Statistik. (2021). Pendlermobilität. Bundesamt für
+    Statistik.
+    https://www.bfs.admin.ch/bfs/de/home/statistiken/mobilitaet-verkehr/personenverkehr/pendlermobilitaet.html
 
-- Kyaing, K., Lwin, K., & Sekimoto, Y. (2017). Human mobility patterns for different regions in Myanmar based on CDRs data. IPTEK Journal of Proceedings Series, 3(6).
+-   Guo, P., Sun, Y., Chen, Q., Li, J., & Liu, Z. (2022). The Impact of
+    Rainfall on Urban Human Mobility from Taxi GPS Data. Sustainability,
+    14(15), Article 15. https://doi.org/10.3390/su14159355
 
-- Liu, X., Sun, L., Sun, Q., & Gao, G. (2020). Spatial Variation of Taxi Demand Using GPS Trajectories and POI Data. Journal of Advanced Transportation, 2020, e7621576.
-https://doi.org/10.1155/2020/7621576
+-   Halsey, L. G. (2016). Terrestrial movement energetics: Current
+    knowledge and its application to the optimising animal. Journal of
+    Experimental Biology, 219(10), 1424--1431.
 
-- Medienmitteilung KT ZH. (2021). Bildung in Zahlen. Kanton Zürich. https://www.zh.ch/de/news-uebersicht/medienmitteilungen/2021/07/bildung-in-zahlen.html
+-   Kyaing, K., Lwin, K., & Sekimoto, Y. (2017). Human mobility patterns
+    for different regions in Myanmar based on CDRs data. IPTEK Journal
+    of Proceedings Series, 3(6).
 
-- Sathishkumar, Cho, Y., & Jangwoo, Park. (2020). Seoul bike trip duration prediction using data mining techniques. IET Intelligent Transport Systems, 14(11), 1465–1474. https://doi.org/10.1049/iet-its.2019.0796
+-   Liu, X., Sun, L., Sun, Q., & Gao, G. (2020). Spatial Variation of
+    Taxi Demand Using GPS Trajectories and POI Data. Journal of Advanced
+    Transportation, 2020, e7621576. https://doi.org/10.1155/2020/7621576
 
+-   Medienmitteilung KT ZH. (2021). Bildung in Zahlen. Kanton Zürich.
+    https://www.zh.ch/de/news-uebersicht/medienmitteilungen/2021/07/bildung-in-zahlen.html
 
-
-
+-   Sathishkumar, Cho, Y., & Jangwoo, Park. (2020). Seoul bike trip
+    duration prediction using data mining techniques. IET Intelligent
+    Transport Systems, 14(11), 1465--1474.
+    https://doi.org/10.1049/iet-its.2019.0796
