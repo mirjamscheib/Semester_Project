@@ -138,7 +138,7 @@ ggplot() +
   theme(axis.text.x=element_blank())
 ```
 
-```{r, fig.cap = "Figure 4: ..."}
+```{r, fig.cap = "Figure 4: Cartographic representation of trajectory points from six students compared during the weekend vs. workdays"}
 #| label: prepro and creation of visual map with convex hull
 
 # transform posmo data into an sf object 
@@ -164,7 +164,7 @@ tm_shape(mcp_posmo) +
   tm_shape(mcp_posmo) +
   tm_borders(col = "red") +
   tm_shape(posmo) +
-  tm_dots(col = "day_week", title = "Day of the Week") 
+  tm_dots(col = "day_week", title = "Day of the Week")
 ```
 
 ## Impact of the time of the day
@@ -315,8 +315,14 @@ ggplot() +
   theme(axis.text.x=element_blank())
 ```
 
-```{r, fig.cap = "Figure 11: ..."}
+```{r, fig.cap = "Figure 11: Cartographic representation of trajectory points from six students compared during the precipitation vs. no precipitation. Additionally, all weather stations used are visualised as black points on the map."}
 #| label: create visual map rain
+
+# load weather stations 
+legend <- read_delim("data/weather_legend.csv")
+
+# create sf object of joined data
+weather <- st_as_sf(legend, coords = c("E","N"), crs = 2056)
 
 # transform posmo data into an sf object 
 posmo <- st_as_sf(posmo, coords = c("X","Y"), crs = 2056) 
@@ -340,7 +346,9 @@ tm_shape(mcp_posmo) +
   tm_shape(mcp_posmo) +
   tm_borders(col = "red") +
   tm_shape(posmo) +
-  tm_dots(col = "rain_day", title = "Precipitation") 
+  tm_dots(col = "rain_day", title = "Precipitation") +
+  tm_shape(weather) +
+  tm_dots(title = "weather Stations")
 ```
 
 
