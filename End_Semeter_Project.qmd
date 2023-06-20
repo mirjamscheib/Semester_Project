@@ -27,6 +27,7 @@ editor:
 - Summary tables nötig? bzw. wie am besten darstellen 
 - Bei results: Duration, Speed, Distance aus Text nehmen
 - Table beschriftungen? Nicht gleich wie figure beschriftung? 
+- Code komplett durchlesen und Kommentare anpassen bei Bedarf
 
 # BACKGROUND AND RESEARCH QUESTIONS
 
