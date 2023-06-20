@@ -22,12 +22,15 @@ editor:
 ---
 
 # To Do's im Code
-Bitte die Plots die ich noch nicht habe noch beschriften oder verbessern, es fehlen Beschriftungen/Titel für die Tables und für die tmaps, da bin ich unsicher (@Mirj)
-Rendern (Miri)
+- Bitte die Plots die ich noch nicht habe noch beschriften oder verbessern, es fehlen Beschriftungen/Titel für die Tables und für die tmaps, da bin ich unsicher (@Mirj)
+- Rendern (Miri)
+- Summary tables nötig? bzw. wie am besten darstellen 
+- Bei results: Duration, Speed, Distance aus Text nehmen
+- Table beschriftungen? Nicht gleich wie figure beschriftung? 
 
 # BACKGROUND AND RESEARCH QUESTIONS
 
-It is known that several factors like the weather condition (Brum-Bastos et al., 2018; Guo et al., 2022), the day of the week and time of the day (Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal movement patterns of people. There are several study’s investigating movement patterns of people in urban areas with the aim to improve the distribution of facilities and the provisioning of transportation services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu et al., 2020). Nevertheless, most studies do not focus on specific social groups (e.g. workforce, students, pensioners), that might follow distinct spatio-temporal patterns, showing a potential demand for a specific adaption of infrastructure. The canton of Zurich accommodates the most students in Switzerland, with numbers continuing to rise (Bundesamt für Statistik, 2023; Medienmitteilung Kanton ZH, 2021). Additionally, students and apprentices (from the age of  15 years) make up 39 % of the public transport commuter mass, which is why knowledge of spatio-temporal patterns of students could help to manage train and other public transport infrastructure (Bundesamt für Statistik, 2021). Therefore, we want to investigate the influence of three environmental factors on spatio-temporal movement patterns of students, aiming to answer the following research questions:  
+It is known that several factors like the weather condition (Brum-Bastos et al., 2018), the day of the week and time of the day (Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal movement patterns of people. There are several study’s investigating movement patterns of people in urban areas with the aim to improve the distribution of facilities and the provisioning of transportation services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu et al., 2020). Nevertheless, most studies do not focus on specific social groups (e.g. workforce, students, pensioners), that might follow distinct spatio-temporal patterns, showing a potential demand for a specific adaption of infrastructure. The canton of Zurich accommodates the most students in Switzerland, with numbers continuing to rise (Bundesamt für Statistik, 2023). Additionally, students and apprentices (from the age of  15 years) make up 39 % of the public transport commuter mass, which is why knowledge of spatio-temporal patterns of students could help to manage train and other public transport infrastructure (Bundesamt für Statistik, 2021). Therefore, we want to investigate the influence of three environmental factors on spatio-temporal movement patterns of students, aiming to answer the following research questions:  
 
 1.	Does the day of the week (weekend vs. workday) have an influence on the spatio-temporal movement patterns of students? 
 2.	Does the time of the day compared between weekend and workday have an influence on the spatio-temporal movement patterns of students? 
@@ -105,7 +108,7 @@ question1_summary <- posmo |>
 question1_summary
 
 
-knitr::opts_chunk$set(eval = FALSE)
+# knitr::opts_chunk$set(eval = FALSE)
 ```
 Table 1: Overview over the calculated metrics for weekends and weekdays, including the different travel modes
 
@@ -266,8 +269,6 @@ ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
 
 ## Impact of precipitation
 
-Does the weather condition (e.g. precipitation) have an impact on
-spatio-temporal patterns of students on different travel modes?
 
 ```{r}
 #| label: Table Summary 2
@@ -290,8 +291,8 @@ question2_summary
 Table 2: Overview over calculated metrics for weekday/weekend including the precipitation data
 
 ### Spatial Analysis
-*Trip distance*
-Precipitation had no major effect on trip distance when travelling by horse, train, tram and foot. Trip distance was longer on days with high precipitation when students travelled by bike, bus and car.  
+
+Precipitation reduced trip distance by bike, foot, bus and car, while distance was higher for travel modes like train and tram. Rain had almost no effect on trip distance when travelling by horse. Although, travel distances are impacted by precipitation, the effect is only marginal. 
 
 ```{r, fig.cap = "Figure 8: Mean trip distance depending on precipitation status, where the trip distance is logarythmised"}
 
@@ -308,8 +309,7 @@ ggplot() +
   theme(axis.text.x=element_blank())
 ```
 
-*Trip speed*
-Speed at high precipitation is slightly slower when travelling by horse, train and tram, while for travelmodes by bike, bus, car and foot travelling speed per trips were marginally higher at rainy days.   
+Speed at high precipitation is lower when travelling by bike, foot, bus and car, while for travel modes such as train and tram speed was higher. Travelling by horse was effected insignificantly by precipitation. Although, travel speeds are impacted by precipitation, the effect is only marginal. 
 ```{r, fig.cap = "Figure 9: Mean trip speed depending on precipitation status, where the trip speed is logarythmised"}
 #| label: mean trip speed depending on precipitation
 
@@ -325,8 +325,9 @@ ggplot(posmo, aes(rain_day, log(trip_speed), fill = rain_day)) +
 ```
 
 ### Temporal Analysis
-*Trip duration*
-Precipitation had no major effect on trip duration when travelling by bus, horse and foot. Trip duration was longer on days with no/less precipitation when students travelled by train and tram, while it shows that students travelled longer by car and bike on days with high precipitation.  
+
+The duration of trips was shorter under heavy precipitation by bike, bus and car, while students travelled longer by train and tram. Considering travelling by horse and foot, precipitation had only insignificant effects. 
+
 ```{r, fig.cap= "Figure 10: Mean trip duration depending on precipitation status"}
 #| label: mean trip duration depending on precipitation
 
@@ -383,9 +384,12 @@ posmo |>
 
 
 # DISCUSSION 
-Spatio-temporal movement patterns generally are individual and differ between societal groups due to factors such as weekly schedules or economic aspects. As students have more heterogeneity in their weekly work schedule their movement patterns reflect this inconsistency. Students more likely travel by public transport or other low cost travelling means as other societal groups, which in turn also affect their spatio-temporal movement patterns regarding our investigated environmental factors. 
 
-In the course of this project it became clear, that the Posmo App comes with severe uncertainties and tracking errors. Quantifying those uncertainties would be subject to another semester project in itself. 
+It is to be noted, that we investigated spatio-temporal movement patterns of students, which cannot be generalized, as it was shown that sociodemographics and travel behavior of university students differ from the general population and between students living on or off campus, as well as students attending urban or suburban campuses (Khattak et al., 2011). Travel behaviour is significantly impacted by age, income and life stage and these socio-demographic variables act in different ways to constrain or free types of travel behaviour (Kattiyapornpong & Miller, 2009). 
+
+In the course of this project it became clear, that the Posmo App comes with severe uncertainties and tracking errors. Quantifying those uncertainties would be subject to another semester project in itself, which is why we assumed that the data we used was correct. 
+
+
 
 
 ## Days of the Week Patterns
@@ -395,14 +399,19 @@ In the course of this project it became clear, that the Posmo App comes with sev
 
 
 ## Precipiation Patterns 
-Precipitation does impact spatio-temporal movement patterns in a fairly heterogeneous way, indicating no clear relationship between precipitation and spatio-temporal movement patterns of students. 
 
-However, some patterns were emerging as distances travelled were marginally longer and speed were slightly higher by bike, bus and car and students travelled longer by bike and car on days with heavy rainfall. In this context, it was shown, that when travel destinations are obligatory (e.g., work, lectures) people change their travel mode more likely under heavy rain, meaning that they drive to work instead of walk. However, if destinations are linked to leisure activities, people mor likely just postpone the task instead of changing their travel mode (Connolly,  2008;  Zivin,  2014) (Brum-Bastos et al., 2018). Additionally, during the week a decrease in public transport was observed under heavy rain by Brum-Bastos et al. (2018). 
-This pattern could not be confirmed in the context of our research, as we only looked at days with or without high precipitation and did not include the type of activity and days of the week. Additionally, the results emerging from speed, distance and duration during rainy or dry conditions were fairly heterogeneous and no clear trends could be obtained. 
+Precipitation impacted spatio-temporal movement patterns of students only in a marginal way, indicating no significant relationship between precipitation and movement patterns concerning several travel modes. 
 
-We found a slight decrease in walking speed and distance, while duration under heavy rain found was slightly higher, while Brum-Bastos et al. (2018) found an overall decrease in walking during rain. They also found a trend of more vehicular use under heavy rain (Brum-Bastos et al., 2018), which could no be confirmed in our research. 
+However, although only insignificant effects could be shown, some patterns were emerging as the movement (distance, speed and duration) of students was reduced under heavy rain when travelling by bike, bus and car, while it was increased when travelling by train and tram. This results are in contrast to Brum-Bastos et al. (2018), where they found a general trend of more vehicular use under heavy rain, while in our study we found e general decrease in the use of cars.  
 
-However, it is unclear is those marginal patterns found in our data is indicative, as we only had a sample size of 5 students and investigated 11 days, from which 8 days were considered having heavy rainfall. Additionally, the results need to be interpreted with caution, as in fig. 11 it is shown, that for some trajectory points weather stations are rather far away to serve as indication for precipitation. 
+By foot it could only be shown that speed and distance were lower under heavy rain, while the duration was not impacted by precipitation patterns. In contrast to our finding, Brum-Bastos et al. (2018) found an overall decrease in walking during rain. The travel mode by horse showed no response in movement to precipitation. 
+
+It was shown, that when travel destinations are obligatory (e.g., work, lectures) people change their travel mode more likely under heavy rain, meaning that they drive to work instead of walk. However, if destinations are linked to leisure activities, people more likely just postpone the task instead of changing their travel mode (Connolly, 2008).
+
+Additionally, during the week a decrease in public transport was observed under heavy rain by Brum-Bastos et al. (2018). This finding are in contrast to our results, where the use of some public transport means (train and tram) was increased under heavy rain, although we did not include the consideration of the days of the week. 
+
+However, it is to be said, that those marginal patterns found in our data is not indicative, as we only had a sample size of 5 students and investigated 11 days, from which 8 days were considered having heavy rainfall. Additionally, the results need to be interpreted with caution, as in fig. 11 it is shown, that for some trajectory points weather stations are rather far away to serve as indication for precipitation. 
+
 
 
 # SOURCES
@@ -414,35 +423,24 @@ However, it is unclear is those marginal patterns found in our data is indicativ
 
 ## Literature
 
--   Brum-Bastos, V. S., Long, J. A., & Demšar, U. (2018). Weather
-    effects on human mobility: A study using multi-channel sequence
-    analysis. Computers, Environment and Urban Systems, 71, 131--152.
-    https://doi.org/10.1016/j.compenvurbsys.2018.05.004
+- Brum-Bastos, V. S., Long, J. A., & Demšar, U. (2018). Weather effects on human mobility: A study using multi-channel sequence analysis. Computers, Environment and Urban Systems, 71, 131–152. https://doi.org/10.1016/j.compenvurbsys.2018.05.004
 
--   Bundesamt für Statistik. (2021). Pendlermobilität. Bundesamt für
-    Statistik.
-    https://www.bfs.admin.ch/bfs/de/home/statistiken/mobilitaet-verkehr/personenverkehr/pendlermobilitaet.html
+- Bundesamt für Statistik. (2021). Pendlermobilität. Bundesamt für Statistik. https://www.bfs.admin.ch/bfs/de/home/statistiken/mobilitaet-verkehr/personenverkehr/pendlermobilitaet.html
 
--   Guo, P., Sun, Y., Chen, Q., Li, J., & Liu, Z. (2022). The Impact of
-    Rainfall on Urban Human Mobility from Taxi GPS Data. Sustainability,
-    14(15), Article 15. https://doi.org/10.3390/su14159355
+- Bundesamt für Statistik. (2023, March 28). Studierende an den universitären Hochschulen: Basistabellen - 1990-2022 | Tabelle. Bundesamt für Statistik. https://www.bfs.admin.ch/asset/de/24345359
 
--   Halsey, L. G. (2016). Terrestrial movement energetics: Current
-    knowledge and its application to the optimising animal. Journal of
-    Experimental Biology, 219(10), 1424--1431.
+- Connolly, M. (2008). Here Comes the Rain Again: Weather and the Intertemporal Substitution of Leisure. Source Journal of Labor Economics Journal of Labor Economics, 26(1), 73–100. https://doi.org/10.1086/522067
 
--   Kyaing, K., Lwin, K., & Sekimoto, Y. (2017). Human mobility patterns
-    for different regions in Myanmar based on CDRs data. IPTEK Journal
-    of Proceedings Series, 3(6).
+- Kattiyapornpong, U., & Miller, K. E. (2009). Socio‐demographic constraints to travel behavior. International Journal of Culture, Tourism and Hospitality Research, 3(1), 81–94. https://doi.org/10.1108/17506180910940360
 
--   Liu, X., Sun, L., Sun, Q., & Gao, G. (2020). Spatial Variation of
-    Taxi Demand Using GPS Trajectories and POI Data. Journal of Advanced
-    Transportation, 2020, e7621576. https://doi.org/10.1155/2020/7621576
+- Khattak, A., Wang, X., Son, S., & Agnello, P. (2011). Travel by University Students in Virginia: Is This Travel Different from Travel by the General Population? Transportation Research Record: Journal of the Transportation Research Board, 2255(1). https://doi.org/10.3141/2255-15
 
--   Medienmitteilung KT ZH. (2021). Bildung in Zahlen. Kanton Zürich.
-    https://www.zh.ch/de/news-uebersicht/medienmitteilungen/2021/07/bildung-in-zahlen.html
+- Kyaing, K., Lwin, K., & Sekimoto, Y. (2017). Human mobility patterns for different regions in Myanmar based on CDRs data. IPTEK Journal of Proceedings Series, 3(6).
 
--   Sathishkumar, Cho, Y., & Jangwoo, Park. (2020). Seoul bike trip
-    duration prediction using data mining techniques. IET Intelligent
-    Transport Systems, 14(11), 1465--1474.
-    https://doi.org/10.1049/iet-its.2019.0796
+- Liu, X., Sun, L., Sun, Q., & Gao, G. (2020). Spatial Variation of Taxi Demand Using GPS Trajectories and POI Data. Journal of Advanced Transportation, 2020, e7621576. https://doi.org/10.1155/2020/7621576
+
+
+- MeteoSwiss. (n.d.). Precipitation. Federal Office of Meterology and Climatology MeteoSwiss. Retrieved 19 June 2023, from https://www.meteoschweiz.admin.ch/wetter/wetter-und-klima-von-a-bis-z/niederschlag.html
+
+- Sathishkumar, Cho, Y., & Jangwoo, Park. (2020). Seoul bike trip duration prediction using data mining techniques. IET Intelligent Transport Systems, 14(11), 1465–1474. https://doi.org/10.1049/iet-its.2019.0796
+
