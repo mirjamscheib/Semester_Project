@@ -22,9 +22,6 @@ editor:
 ---
 
 # To Do's im Code
-
-Map visualization schön mache (Mirj) 
-Boxplots vereinheitlichen (Mirj)
 Bitte die Plots die ich noch nicht habe noch beschriften oder verbessern, es fehlen Beschriftungen/Titel für die Tables und für die tmaps, da bin ich unsicher (@Mirj)
 Rendern (Miri)
 
@@ -39,9 +36,33 @@ It is known that several factors like the weather condition (Brum-Bastos et al.,
 
 # DATA & METHODS
 
-## Data sets
+## Data 
+
+Primary data used in this project work consisted of trajectory data from 11 students collected with the Posmo App containing the following attributes:
+
+-	**user_id:** entails the individual ID of the user (= student) (type: character)
+-	**datetime:** date and time when a position of a user is tracked (type: datetime)
+-	**weekday:** abbreviated name of the weekday (e.g. Mon = Monday) (type: character)
+-	**place_name:** names of a place, in which a user is at a specific time (type: character)
+-	**transport_mode:** the type of transport used by a user (e.g. car, bicycle, foot, train, other....) (type: character)
+-	**lon_x/lat_y:** coordinates of the user at a specific time (type: numeric)
+
+Additionally, weather data from 84 stations in the canton of Zurich and bordering cantons (SZ, AG, ZG, TG, SG), consisting of measurements every 10 minutes was used to investigate the influence of precipitation on spatio-temporal movement patterns of students. 
+
 
 ## Pre-processing
+
+For the analysis first we reviewed data consistency by creating a point plot, where every tracking point in time (x-axis) was displayed per user (y-axis). Five users needed to be eliminated due to insufficient tracking point coverage in time. Additionally, the dataset was cut into a specific timeframe (28.04.2023 - 09.05.2023) covering 11 days to ensure sufficient overlap of tracking points between users in time. Additionally, travel modes consisting of “Airplane”, “Funicular” and “Other1” were removed, as they presented either too specific or unspecific travel modes to be of interest in the subsequent analysis. 
+
+Furthermore, all convenience variables needed for the analysis were annotated in our pre-processing steps. First, it was discriminated between weekend (Sa – So) and weekdays (Mo – Fr). Additionally, to discriminate between days with high and low/no precipitation we calculated the nearest weather station for every trajectory point and annotated the precipitation data at the matching time to our dataset. We considered a precipitation of > 20 mm per 24 hours as a rainy day, as MeteoSwiss (n.d.) defines a precipitation from 10 – 30 mm per 24 hours as high intensity precipitation. 
+
+To investigate spatio-temporal movement patterns of students in concern to environmental variables, we discriminated between static and movement segments and assigned to every moving sequence a segment ID. From this we calculated distance, speed and duration for every segment. 
+
+All pre-processing steps can be accessed in a separate quarto-file (Pre_Processing.qmd) in our github respiratory under the following link: https://github.com/mirjamscheib/Semester_Project.git
+
+## Analysis
+
+The analysis of the research questions was carried out by creating summary tables and boxplots to investigate distance, speed and duration of different travel modes comparing weekends with weekdays and precipitation with no precipitation. Additionally, line plots visualising distance, speed and duration per hour of the day comparing weekends with weekdays were carried out. Cartographic maps visualising trajectory points of students comparing weekends with weekdays and precipitation and no precipitation complement the analysis. 
 
 ```{r}
 #| label: load packages and clean data
@@ -70,19 +91,21 @@ posmo <- read_delim("posmo_data/posmo_trips.csv")
 
 ## Impact of the day of the week
 
-Does the day of the week (weekend vs. workday) have an impact on
-spatio-temporal movement patterns?
-
 ```{r}
 #| label: Table summary 1
 question1_summary <- posmo |> 
   group_by(day_week, transport_mode) |> 
-  summarise(steplength_mean = mean(steplength, na.rm = T),
-            speed_mean = mean(speed, na.rm = T)) |> 
-  mutate(percentage_steplength = steplength_mean/sum(steplength_mean)*100,
-         percentage_speed = speed_mean/sum(speed_mean)*100)
+  summarise(dis_mean = mean(trip_dis, na.rm = T),
+            speed_mean = mean(trip_speed, na.rm = T),
+            dur_mean = mean(trip_duration, na.rm = T)) |> 
+  mutate(perc_dis = dis_mean/sum(dis_mean)*100,
+         perc_speed = speed_mean/sum(speed_mean)*100,
+         perc_dur = dur_mean/sum(dur_mean)*100)
 
 question1_summary
+
+
+knitr::opts_chunk$set(eval = FALSE)
 ```
 Table 1: Overview over the calculated metrics for weekends and weekdays, including the different travel modes
 
@@ -241,7 +264,7 @@ ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
   theme_minimal()
 ```
 
-## Impact of precipitataion
+## Impact of precipitation
 
 Does the weather condition (e.g. precipitation) have an impact on
 spatio-temporal patterns of students on different travel modes?
@@ -254,10 +277,13 @@ posmo <- read_delim("posmo_data/posmo_trips.csv")
 
 question2_summary <- posmo |> 
   group_by(rain_day, transport_mode) |> 
-  summarise(steplength_mean = mean(steplength, na.rm = T),
-            speed_mean = mean(speed, na.rm = T)) |> 
-  mutate(percentage_steplength = steplength_mean/sum(steplength_mean)*100,
-         percentage_speed = speed_mean/sum(speed_mean)*100)
+  summarise(dis_mean = mean(trip_dis, na.rm = T),
+            speed_mean = mean(trip_speed, na.rm = T),
+            dur_mean = mean(trip_duration, na.rm = T)) |> 
+  mutate(perc_dis = dis_mean/sum(dis_mean)*100,
+         perc_speed = speed_mean/sum(speed_mean)*100,
+         perc_dur = dur_mean/sum(dur_mean)*100) |>
+  subset(rain_day == "rain")
 
 question2_summary
 ```
@@ -349,17 +375,42 @@ tm_shape(mcp_posmo) +
   tm_dots(col = "rain_day", title = "Precipitation") +
   tm_shape(weather) +
   tm_dots(title = "weather Stations")
+
+posmo |>
+  group_by(rain_day, day_week, date) |>
+  summarise()
 ```
 
 
 # DISCUSSION 
-TEXT
+Spatio-temporal movement patterns generally are individual and differ between societal groups due to factors such as weekly schedules or economic aspects. As students have more heterogeneity in their weekly work schedule their movement patterns reflect this inconsistency. Students more likely travel by public transport or other low cost travelling means as other societal groups, which in turn also affect their spatio-temporal movement patterns regarding our investigated environmental factors. 
+
+In the course of this project it became clear, that the Posmo App comes with severe uncertainties and tracking errors. Quantifying those uncertainties would be subject to another semester project in itself. 
+
+
+## Days of the Week Patterns
+
+
+## Influence of the Time of the Day
+
+
+## Precipiation Patterns 
+Precipitation does impact spatio-temporal movement patterns in a fairly heterogeneous way, indicating no clear relationship between precipitation and spatio-temporal movement patterns of students. 
+
+However, some patterns were emerging as distances travelled were marginally longer and speed were slightly higher by bike, bus and car and students travelled longer by bike and car on days with heavy rainfall. In this context, it was shown, that when travel destinations are obligatory (e.g., work, lectures) people change their travel mode more likely under heavy rain, meaning that they drive to work instead of walk. However, if destinations are linked to leisure activities, people mor likely just postpone the task instead of changing their travel mode (Connolly,  2008;  Zivin,  2014) (Brum-Bastos et al., 2018). Additionally, during the week a decrease in public transport was observed under heavy rain by Brum-Bastos et al. (2018). 
+This pattern could not be confirmed in the context of our research, as we only looked at days with or without high precipitation and did not include the type of activity and days of the week. Additionally, the results emerging from speed, distance and duration during rainy or dry conditions were fairly heterogeneous and no clear trends could be obtained. 
+
+We found a slight decrease in walking speed and distance, while duration under heavy rain found was slightly higher, while Brum-Bastos et al. (2018) found an overall decrease in walking during rain. They also found a trend of more vehicular use under heavy rain (Brum-Bastos et al., 2018), which could no be confirmed in our research. 
+
+However, it is unclear is those marginal patterns found in our data is indicative, as we only had a sample size of 5 students and investigated 11 days, from which 8 days were considered having heavy rainfall. Additionally, the results need to be interpreted with caution, as in fig. 11 it is shown, that for some trajectory points weather stations are rather far away to serve as indication for precipitation. 
+
 
 # SOURCES
 
 ## Data
 
---> woher war regendatenset
+- **Trajectory data of students:** Posmo App 
+- **Weather data:** https://gate.meteoswiss.ch/idaweb
 
 ## Literature
 

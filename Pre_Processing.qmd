@@ -295,10 +295,6 @@ posmo_trips <- posmo |>
 posmo_trips <- posmo_trips |>
   group_by(segment_id) |> 
   mutate(trip_duration = sum(speed/steplength), trip_dis = sum(steplength), trip_speed = sum(speed))
-
-# remove trips that are shorter than 10min = 600s - probieren einzeln setzen oder weglassen 
-#posmo_trips <- posmo_trips |>
-#  subset(trip_duration > 60)
 ```
 
 ## Save cleaned, added dataset one with all and one with segmented data
