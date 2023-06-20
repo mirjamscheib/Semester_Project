@@ -1,8 +1,8 @@
 ---
-title: "Effects of environmental factors on spatio-temporal movement patterns of students"
+title: "Effects of three environmental factors on spatio-temporal movement patterns of students"
 subtitle: "Project for Patterns and Trends in Environmental Data - Computational Movement Analysis"
 author: "Mirjam Scheib & Miriam Steinhauer"
-date: "5/22/2021"
+date: "07/02/2023"
 format:
   html:
     code-fold: true
@@ -30,35 +30,12 @@ Rendern (Miri)
 
 # BACKGROUND AND RESEARCH QUESTIONS
 
-It is known that several factors like the weather condition (Brum-Bastos
-et al., 2018; Guo et al., 2022), the day of the week and time of the day
-(Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal
-movement patterns of people. There are several study's investigating
-movement patterns of people in urban areas with the aim to improve the
-distribution of facilities and the provisioning of transportation
-services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu
-et al., 2020). Nevertheless, most studies do not focus on specific
-social groups (e.g. workforce, students, pensioners), that might follow
-distinct spatio-temporal patterns, showing a potential demand for a
-specific adaption of infrastructure. The canton of Zurich accommodates
-the most students in Switzerland, with numbers continuing to rise
-(Bundesamt für Statistik, 2023; Medienmitteilung Kanton ZH, 2021).
-Additionally, students and apprentices (from the age of 15 years) make
-up 39% of the public transport commuter mass, which is why knowledge of
-spatio-temporal patterns of students could help to manage train and
-other public transport infrastructure (Bundesamt für Statistik, 2021).
-Therefore, we want to investigate the influence of three environmental
-factors on spatio-temporal movement patterns of students, aiming to
-answer the following research questions:
+It is known that several factors like the weather condition (Brum-Bastos et al., 2018; Guo et al., 2022), the day of the week and time of the day (Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal movement patterns of people. There are several study’s investigating movement patterns of people in urban areas with the aim to improve the distribution of facilities and the provisioning of transportation services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu et al., 2020). Nevertheless, most studies do not focus on specific social groups (e.g. workforce, students, pensioners), that might follow distinct spatio-temporal patterns, showing a potential demand for a specific adaption of infrastructure. The canton of Zurich accommodates the most students in Switzerland, with numbers continuing to rise (Bundesamt für Statistik, 2023; Medienmitteilung Kanton ZH, 2021). Additionally, students and apprentices (from the age of  15 years) make up 39 % of the public transport commuter mass, which is why knowledge of spatio-temporal patterns of students could help to manage train and other public transport infrastructure (Bundesamt für Statistik, 2021). Therefore, we want to investigate the influence of three environmental factors on spatio-temporal movement patterns of students, aiming to answer the following research questions:  
 
-Does the day of the week (weekend vs. workday) have an influence on the
-spatio-temporal movement patterns of students?
+1.	Does the day of the week (weekend vs. workday) have an influence on the spatio-temporal movement patterns of students? 
+2.	Does the time of the day compared between weekend and workday have an influence on the spatio-temporal movement patterns of students? 
+3.	Does precipitation has an impact the spatio-temporal movement patterns of students?
 
-Does the time of the day compared between weekend/weekday have an
-influence on spatio-temporal movement patterns of students?
-
-Does the weather condition (e.g. precipitation) have an impact the
-spatio-temporal patterns of students?
 
 # DATA & METHODS
 
@@ -124,7 +101,6 @@ For each travelmode we found a higher trip distance on weekends compared to week
     facet_wrap(~transport_mode, nrow = 1) +
     theme_minimal() +
   theme(axis.text.x=element_blank())
-
 ```
 *Trip speed*
 For trip speed, the results are not as clear as for trip distance, but there is a tendency of trip speed being higher on the weekends, than during the week. Again we find the mean trip speed of "bike" being in a similar range as "car" and "train", whereas "bus" conforms to "horse".
@@ -134,7 +110,7 @@ For trip speed, the results are not as clear as for trip distance, but there is 
 
 ggplot(posmo, aes(day_week, log(trip_speed), fill = day_week)) +
   geom_boxplot() +
-  labs(title = "Speed per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
+  labs(title = "Trip Speed per Transport Mode", subtitle = "Comparing Weekend vs. Weekday", fill = "Day of the Week") +
   ylab("Log Speed [m/s]") +
   xlab("Transport Mode") +
   scale_fill_manual(values = c("weekday" = "lavenderblush3", "weekend" = "aquamarine3"), labels = c( "Weekday", "Weekend")) +
@@ -160,7 +136,6 @@ ggplot() +
   facet_wrap(~transport_mode, nrow = 1) +
   theme_minimal() +
   theme(axis.text.x=element_blank())
-
 ```
 
 ```{r, fig.cap = "Figure 4: ..."}
@@ -184,12 +159,12 @@ tmap_mode("view")
 
 # segmented visualisation 
 tm_shape(mcp_posmo) +
-  tm_fill(col = "dataset", alpha = 0.4) +
-  tm_legend(title = "User") +
+  tm_fill(col = "dataset", alpha = 0.4, title = "Student") +
+  tm_layout(title = "Cartographic Representation of Students travelling on Weekdays vs. Weekends") +
   tm_shape(mcp_posmo) +
   tm_borders(col = "red") +
   tm_shape(posmo) +
-  tm_dots(col = "day_week")
+  tm_dots(col = "day_week", title = "Day of the Week") 
 ```
 
 ## Impact of the time of the day
@@ -207,13 +182,6 @@ posmo <- read_delim("posmo_data/posmo_trips.csv")
 posmo_round <- posmo |>
   mutate(hour = lubridate::hour(datetime))
 
-# create dataframe, which calculates mean steplength, speed per hour over all dates
-# here with weekdays 
-posmo_hour <- posmo_round |>
-  group_by(hour, weekday) |>
-  summarise(mean_dis = mean(trip_dis, na.rm = TRUE),
-            mean_speed = mean(trip_speed, na.rm = TRUE), 
-            mean_duration = mean(trip_duration, na.rm = TRUE)) 
 
 # create dataframe, which calculates mean steplength, speed per hour over all dates
 # here with days of the week (weekend vs. weekday)
@@ -222,7 +190,6 @@ posmo_day <- posmo_round |>
   summarise(mean_dis = mean(trip_dis, na.rm = TRUE),
             mean_speed = mean(trip_speed, na.rm = TRUE),
             mean_duration = mean(trip_duration, na.rm = TRUE)) 
-
 ```
 
 ### Spatial Analysis
@@ -235,8 +202,8 @@ The result for the trip distances per hour and weekday encourages the previous r
 ggplot(posmo_day, aes(hour, mean_dis, col = day_week)) +
   geom_point() +
   geom_line(lwd = 0.7) +
-  labs(title = "Mean Trip Distance over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "weekend / weekday") +
-  scale_color_manual(values = c("weekday" = "mediumpurple4", "weekend" = "aquamarine3", labels = c("Weekday", "Weekend")))+
+  labs(title = "Mean Trip Distance over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Day of the Week") +
+  scale_color_manual(values = c("weekday" = "mediumpurple4", "weekend" = "aquamarine3"), labels = c("Weekday", "Weekend")) +
   ylab("Mean Distance [m]") +
   xlab("Hour") +
   theme_minimal()
@@ -250,8 +217,8 @@ The pattern of a decreasing travel speed on the weekend towards the end of the d
 ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
   geom_point() +
   geom_line(lwd = 0.7) +
-  labs(title = "Mean Speed over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend vs. Weekday") + 
-  scale_color_manual(values = c("weekday" = "mediumpurple4", "weekend" = "aquamarine3", labels = c("Weekday", "Weekend")))+
+  labs(title = "Mean Speed over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Day of the Week") + 
+  scale_color_manual(values = c("weekday" = "mediumpurple4", "weekend" = "aquamarine3"), labels = c("Weekday", "Weekend"))+
   ylab("Mean Speed [m/s]") +
   xlab("Hour") +
   theme_minimal()
@@ -267,10 +234,10 @@ The trip duration seems to rise slightly on both weekends and weekdays towards t
 ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
   geom_point() +
     geom_line(lwd = 0.7) +
-  labs(title = "Mean Trip Duration over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Weekend vs. Weekday") +
+  labs(title = "Mean Trip Duration over 24h", subtitle = "Compared between Weekend vs. Weekday", color = "Day of the Week") +
   ylab("Mean Duration [min]") +
   xlab("Hour") +
-  scale_color_manual(values = c("weekday" = "mediumpurple4", "weekend" = "aquamarine3", labels = c("Weekday", "Weekend"))) +
+  scale_color_manual(values = c("weekday" = "mediumpurple4", "weekend" = "aquamarine3"), labels = c("Weekday", "Weekend")) +
   theme_minimal()
 ```
 
@@ -302,16 +269,17 @@ Precipitation had no major effect on trip distance when travelling by horse, tra
 
 ```{r, fig.cap = "Figure 8: Mean trip distance depending on precipitation status, where the trip distance is logarythmised"}
 
-
 #| label: mean trip distance depending on precipitation
 
 ggplot() +
-  geom_boxplot(data = posmo, aes(transport_mode, log(trip_dis), fill = rain_day)) +
-    labs(title = "Trip distances per Transport Mode", subtitle = "Comparing rainy with dry days", fill = "precipitation") +
+  geom_boxplot(data = posmo, aes(rain_day, log(trip_dis), fill = rain_day)) +
+    labs(title = "Trip Distance per Transport Mode", subtitle = "Comparing Precipitation vs. no Precipitation", fill = "Precipitation") +
   ylab("Log Distance [m]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "No", "Yes")) +
-  theme_minimal() 
+  scale_fill_manual(values = c("rain" = "lavenderblush3", "no_rain" = "aquamarine3"), labels = c( "Precipitation", "No Precipitation")) +
+  facet_wrap(~transport_mode, nrow = 1) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank())
 ```
 
 *Trip speed*
@@ -319,13 +287,15 @@ Speed at high precipitation is slightly slower when travelling by horse, train a
 ```{r, fig.cap = "Figure 9: Mean trip speed depending on precipitation status, where the trip speed is logarythmised"}
 #| label: mean trip speed depending on precipitation
 
-ggplot(posmo, aes(transport_mode, log(trip_speed), fill = rain_day)) +
+ggplot(posmo, aes(rain_day, log(trip_speed), fill = rain_day)) +
   geom_boxplot() +
-   labs(title = "Speed per Transport Mode", subtitle = "Comparing rainy with dry days", fill = "precipitation") +
+   labs(title = "Trip Speed per Transport Mode", subtitle = "Comparing Precipitation vs. no Precipitation", fill = "Precipitation") +
   ylab("Log Speed [m/s]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "No", "Yes")) +
-  theme_minimal() 
+  scale_fill_manual(values = c("rain" = "lavenderblush3", "no_rain" = "aquamarine3"), labels = c( "Precipitation", "No Precipitation")) +
+  facet_wrap(~transport_mode, nrow = 1) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank())
 ```
 
 ### Temporal Analysis
@@ -335,12 +305,14 @@ Precipitation had no major effect on trip duration when travelling by bus, horse
 #| label: mean trip duration depending on precipitation
 
 ggplot() +
-  geom_boxplot(data = posmo, aes(transport_mode, trip_duration/60, fill = rain_day)) +
-  labs(title = "Trip duration per Transport Mode", subtitle = "Comparing rainy with dry days", fill = "precipitation") +
+  geom_boxplot(data = posmo, aes(rain_day, trip_duration/60, fill = rain_day)) +
+  labs(title = "Trip Duration per Transport Mode", subtitle = "Comparing Precipitation vs. no Precipitation", fill = "Precipitation") +
   ylab("Duration [min]") +
   xlab("Transport Mode") +
-  scale_fill_manual(values = c("no_rain" = "lavenderblush3", "rain" = "aquamarine3"), labels = c( "No", "Yes")) +
-  theme_minimal()
+  scale_fill_manual(values = c("rain" = "lavenderblush3", "no_rain" = "aquamarine3"), labels = c( "Precipitation", "No Precipitation")) +
+  facet_wrap(~transport_mode, nrow = 1) +
+  theme_minimal() +
+  theme(axis.text.x=element_blank())
 ```
 
 ```{r, fig.cap = "Figure 11: ..."}
@@ -363,12 +335,14 @@ tmap_mode("view")
 
 # segmented visualisation 
 tm_shape(mcp_posmo) +
-  tm_fill(col = "dataset", alpha = 0.4) +
+  tm_fill(col = "dataset", alpha = 0.4, title = "Student") +
+  tm_layout(title = "Cartographic Representation of Students travelling with/without Precipitation") +
   tm_shape(mcp_posmo) +
   tm_borders(col = "red") +
   tm_shape(posmo) +
-  tm_dots(col = "rain_day") 
+  tm_dots(col = "rain_day", title = "Precipitation") 
 ```
+
 
 # DISCUSSION 
 TEXT
