@@ -22,12 +22,9 @@ editor:
 ---
 
 # To Do's im Code
-- Bitte die Plots die ich noch nicht habe noch beschriften oder verbessern, es fehlen Beschriftungen/Titel für die Tables und für die tmaps, da bin ich unsicher (@Mirj)
 - Rendern (Miri)
 - Summary tables nötig? bzw. wie am besten darstellen 
-- Bei results: Duration, Speed, Distance aus Text nehmen
 - Table beschriftungen? Nicht gleich wie figure beschriftung? 
-- Code komplett durchlesen und Kommentare anpassen bei Bedarf
 
 # BACKGROUND AND RESEARCH QUESTIONS
 
@@ -111,12 +108,12 @@ question1_summary
 
 # knitr::opts_chunk$set(eval = FALSE)
 ```
-Table 1: Overview over the calculated metrics for weekends and weekdays, including the different travel modes
+Table 1: Overview over the mean speed, distance and duration of travel modes compared between weekdays and weekends, including their share 
 
 ### Spatial Analysis
-*Trip distance* 
+
 For each travelmode we found a higher trip distance on weekends compared to weekdays. The trip distances for the travel mode "walk" have a lower mean than for other travel modes. On the other hand, the mean travel distances for "bike" are around the same range as for "car" and "train". 
-```{r, fig.cap = "Figure 1: Trip distance per transport mode comparing weekends and weekdays, the trip distance is logarythmised"}
+```{r, fig.cap = "Figure 1: Trip distance per transport mode compared between weekends and weekdays, the trip distance is logarythmised"}
 #| label: Boxplot comparing trip distance between weekend and weekday of travelmodes
 
   ggplot() +
@@ -129,10 +126,10 @@ For each travelmode we found a higher trip distance on weekends compared to week
     theme_minimal() +
   theme(axis.text.x=element_blank())
 ```
-*Trip speed*
+
 For trip speed, the results are not as clear as for trip distance, but there is a tendency of trip speed being higher on the weekends, than during the week. Again we find the mean trip speed of "bike" being in a similar range as "car" and "train", whereas "bus" conforms to "horse".
 
-```{r, fig.cap = "Figure 2: Trip speed per transport mode comparing weekends and weekdays, the trip speed is logarythmised"}
+```{r, fig.cap = "Figure 2: Trip speed per transport mode compared between weekends and weekdays, the trip speed is logarythmised"}
 #| label: Boxplot comparing trip speed between weekend and weekday of travelmodes
 
 ggplot(posmo, aes(day_week, log(trip_speed), fill = day_week)) +
@@ -145,11 +142,12 @@ ggplot(posmo, aes(day_week, log(trip_speed), fill = day_week)) +
   theme_minimal() +
   theme(axis.text.x=element_blank())
 ```
+
 ### Temporal Analysis
-*Trip duration*
+
 We could not find a clear result concerning trip duration between weekends and weekdays. The only tendency that can be seen, is that the mean trip duration of "walk" is lower than for all the other travel modes.
 
-```{r, fig.cap = "Figure 3: Trip duration per transport mode comparing weekends and weekdays, the trip duration is logarythmised"}
+```{r, fig.cap = "Figure 3: Trip duration per transport mode compared between weekends and weekdays, the trip duration is logarythmised"}
 
 
 #| label: Boxplot comparing trip duration between weekend and weekday of travelmodes
@@ -165,7 +163,7 @@ ggplot() +
   theme(axis.text.x=element_blank())
 ```
 
-```{r, fig.cap = "Figure 4: Cartographic representation of trajectory points from six students compared during the weekend vs. workdays"}
+```{r, fig.cap = "Figure 4: Cartographic representation of trajectory points from six students compared between weekends and weekdays"}
 #| label: prepro and creation of visual map with convex hull
 
 # transform posmo data into an sf object 
@@ -184,7 +182,7 @@ mcp_posmo <- st_convex_hull(posmo_smry)
 # set visual mode
 tmap_mode("view")
 
-# segmented visualisation 
+# cartographic visualisation 
 tm_shape(mcp_posmo) +
   tm_fill(col = "dataset", alpha = 0.4, title = "Student") +
   tm_layout(title = "Cartographic Representation of Students travelling on Weekdays vs. Weekends") +
@@ -195,9 +193,6 @@ tm_shape(mcp_posmo) +
 ```
 
 ## Impact of the time of the day
-
-Does the time of the day compared between weekend/weekday have an
-influence on spatio-temporal movement patterns of students?
 
 ```{r}
 #| label: prepro metrics for plots
@@ -210,8 +205,7 @@ posmo_round <- posmo |>
   mutate(hour = lubridate::hour(datetime))
 
 
-# create dataframe, which calculates mean steplength, speed per hour over all dates
-# here with days of the week (weekend vs. weekday)
+# create dataframe, which calculates mean steplength, speed per hour over all dates comparing weekends and weekdays
 posmo_day <- posmo_round |>
   group_by(hour, day_week)|>
   summarise(mean_dis = mean(trip_dis, na.rm = TRUE),
@@ -220,9 +214,9 @@ posmo_day <- posmo_round |>
 ```
 
 ### Spatial Analysis
-*Trip distance*
+
 The result for the trip distances per hour and weekday encourages the previous result of trip distance per travel mode, as both results show higher trip distances on the weekends compared to on weekdays. Otherwise the results do not show clear patterns. Maybe a slight decrease of the trip distances towards the end of the day. 
-```{r, fig.cap = "Figure 5: Mean trip distance for every hour of the day on weekdays and weekends"}
+```{r, fig.cap = "Figure 5: Mean trip distance for every hour of the day compared between weekdays and weekends"}
 
 #| label: Mean trip distance per hour of the day compared between weekend/weekday
 
@@ -235,10 +229,10 @@ ggplot(posmo_day, aes(hour, mean_dis, col = day_week)) +
   xlab("Hour") +
   theme_minimal()
 ```
-*Trip speed*
+
 The pattern of a decreasing travel speed on the weekend towards the end of the day gets clearer in this result. Also, we found a higher trip speeds for weekends compared to on weekdays. 
 
-```{r, fig.cap = "Figure 6: Mean trip speed for every hour of the day on weekdays and weekends"}
+```{r, fig.cap = "Figure 6: Mean trip speed for every hour of the day compared between weekdays and weekends"}
 #| label: Mean trip speed per hour of the day compared between weekend/weekday
 
 ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
@@ -252,10 +246,10 @@ ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
 ```
 
 ### Temproal Analysis
-*Trip duration*
+
 The trip duration seems to rise slightly on both weekends and weekdays towards the end of the day. Otherwise we could not detect any pattern in this result. 
 
-```{r, fig.cap = "Figure 7: Mean trip duration for every hour of the day on weekdays and weekends"}
+```{r, fig.cap = "Figure 7: Mean trip duration for every hour of the day compared between weekdays and weekends"}
 #| label: Mean trip duration per hour of the day compared between weekend/weekday
 
 ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
@@ -289,13 +283,13 @@ question2_summary <- posmo |>
 
 question2_summary
 ```
-Table 2: Overview over calculated metrics for weekday/weekend including the precipitation data
+Table 2: Overview over the mean speed, distance and duration of travel modes compared between rainy or dry days, including their share 
 
 ### Spatial Analysis
 
 Precipitation reduced trip distance by bike, foot, bus and car, while distance was higher for travel modes like train and tram. Rain had almost no effect on trip distance when travelling by horse. Although, travel distances are impacted by precipitation, the effect is only marginal. 
 
-```{r, fig.cap = "Figure 8: Mean trip distance depending on precipitation status, where the trip distance is logarythmised"}
+```{r, fig.cap = "Figure 8: Mean trip distance compared between precipiation and no/low precipitaion, where the trip distance is logarythmised"}
 
 #| label: mean trip distance depending on precipitation
 
@@ -311,7 +305,7 @@ ggplot() +
 ```
 
 Speed at high precipitation is lower when travelling by bike, foot, bus and car, while for travel modes such as train and tram speed was higher. Travelling by horse was effected insignificantly by precipitation. Although, travel speeds are impacted by precipitation, the effect is only marginal. 
-```{r, fig.cap = "Figure 9: Mean trip speed depending on precipitation status, where the trip speed is logarythmised"}
+```{r, fig.cap = "Figure 9: Mean trip speed compared between precipiation and no/low precipitaion, where the trip speed is logarythmised"}
 #| label: mean trip speed depending on precipitation
 
 ggplot(posmo, aes(rain_day, log(trip_speed), fill = rain_day)) +
@@ -329,7 +323,7 @@ ggplot(posmo, aes(rain_day, log(trip_speed), fill = rain_day)) +
 
 The duration of trips was shorter under heavy precipitation by bike, bus and car, while students travelled longer by train and tram. Considering travelling by horse and foot, precipitation had only insignificant effects. 
 
-```{r, fig.cap= "Figure 10: Mean trip duration depending on precipitation status"}
+```{r, fig.cap= "Figure 10: Mean trip duration compared between precipiation and no/low precipitaion"}
 #| label: mean trip duration depending on precipitation
 
 ggplot() +
@@ -343,7 +337,7 @@ ggplot() +
   theme(axis.text.x=element_blank())
 ```
 
-```{r, fig.cap = "Figure 11: Cartographic representation of trajectory points from six students compared during the precipitation vs. no precipitation. Additionally, all weather stations used are visualised as black points on the map."}
+```{r, fig.cap = "Figure 11: Cartographic representation of trajectory points from six students compared between precipitation and no/low precipitation. Additionally, all weather stations used are visualised as black points on the map."}
 #| label: create visual map rain
 
 # load weather stations 
@@ -377,10 +371,6 @@ tm_shape(mcp_posmo) +
   tm_dots(col = "rain_day", title = "Precipitation") +
   tm_shape(weather) +
   tm_dots(title = "weather Stations")
-
-posmo |>
-  group_by(rain_day, day_week, date) |>
-  summarise()
 ```
 
 
