@@ -385,16 +385,21 @@ In the course of this project it became clear, that the Posmo App comes with sev
 
 
 
-## Days of the Week Patterns
+## Patterns of the day of the week
+We found a clear pattern through all travel modes, where the trip distance is higher on weekends compared to weekdays. The same pattern can also be seen for speed, where only for the travel mode train the speed was higher during weekdays than on weekends. The trend can still be seen but cannot be indicated significant for the trip duration, where three (horse, train, walk) of seven travel modes show an opposite pattern. Interestingly, Sathishkumar et al. (2020) found the same pattern very clearly for bike, where most bike trips during the week took around 24 minutes compared to 30 minutes on the weekends. In our results, bike moves along with the pattern as well, which suggests that it might depend on the travel mode, whether the trip duration is longer or shorter on the weekends compared to weekdays.
+
+Since trip distance, duration and speed are interconnected parameters and the pattern is clear for trip distance and gets weaker for speed and further decreases for trip duration, another reason could be our imbalanced dataset. We had to cut our datasets in time, to attain seamless data over all days, from all individual participants. Therefore, we ended up with groups for weekday and weekend, with 7 days of data for weekdays and only 4 days for weekends. This bias might have influenced out results intensely. For further studies we therefore suggest a larger number of participants and a longer period of GPS-tracking, to achieve balanced data. 
 
 
-## Influence of the Time of the Day
+## Patterns of the time of the day
+The impact of the time of the day seems to be similar to the day of the week. We found overall higher trip distances for the weekend, but this pattern is less pronounced for the trip speed and is lost for the trip duration. Also, we found a decrease of the trip distance and the trip speed with progressive time during the day. Again, this pattern cannot be seen for the trip duration. 
+
+Comparing our results to literature, the pattern Sathishkumar et al. (2020) found for bike (weekend and weekday mixed) looks similar to the pattern we found for weekend, where there is the shortest trip duration around 8.00 and the trips are the longest in the afternoon and evening. In our eyes, it is hard to explain this pattern, when weekend and weekday are not split up and their explanation for their pattern applies to South Korea, which might have a different work/study culture than Switzerland has. Our explanation for the weekend pattern would be, that the trip duration is longer after noon until late evening, as students might sleep in and start and end their day later than during the week. This fits with the pattern during the week, where we have two trip duration peaks during communing time and a small one just before lunch, that can be explained by students only having courses in the morning and travelling home before lunch. The last peak at 20:00 can be explained by leisure activities in the evening, that end earlier than on the weekends. 
 
 
 ## Precipiation Patterns 
 
 Precipitation impacted spatio-temporal movement patterns of students only in a marginal way, indicating no significant relationship between precipitation and movement patterns concerning several travel modes. 
-
 However, although only insignificant effects could be shown, some patterns were emerging as the movement (distance, speed and duration) of students was reduced under heavy rain when travelling by bike, bus and car, while it was increased when travelling by train and tram. This results are in contrast to Brum-Bastos et al. (2018), where they found a general trend of more vehicular use under heavy rain, while in our study we found e general decrease in the use of cars.  
 
 By foot it could only be shown that speed and distance were lower under heavy rain, while the duration was not impacted by precipitation patterns. In contrast to our finding, Brum-Bastos et al. (2018) found an overall decrease in walking during rain. The travel mode by horse showed no response in movement to precipitation. 
@@ -424,6 +429,8 @@ However, it is to be said, that those marginal patterns found in our data is not
 
 - Connolly, M. (2008). Here Comes the Rain Again: Weather and the Intertemporal Substitution of Leisure. Source Journal of Labor Economics Journal of Labor Economics, 26(1), 73–100. https://doi.org/10.1086/522067
 
+- Guo, P., Sun, Y., Chen, Q., Li, J., & Liu, Z. (2022). The Impact of Rainfall on Urban Human Mobility from Taxi GPS Data. Sustainability, 14(15), Article 15. https://doi.org/10.3390/su14159355
+
 - Kattiyapornpong, U., & Miller, K. E. (2009). Socio‐demographic constraints to travel behavior. International Journal of Culture, Tourism and Hospitality Research, 3(1), 81–94. https://doi.org/10.1108/17506180910940360
 
 - Khattak, A., Wang, X., Son, S., & Agnello, P. (2011). Travel by University Students in Virginia: Is This Travel Different from Travel by the General Population? Transportation Research Record: Journal of the Transportation Research Board, 2255(1). https://doi.org/10.3141/2255-15
@@ -432,8 +439,10 @@ However, it is to be said, that those marginal patterns found in our data is not
 
 - Liu, X., Sun, L., Sun, Q., & Gao, G. (2020). Spatial Variation of Taxi Demand Using GPS Trajectories and POI Data. Journal of Advanced Transportation, 2020, e7621576. https://doi.org/10.1155/2020/7621576
 
+- Medienmitteilung Kanton ZH. (2021). Bildung in Zahlen. Kanton Zürich. https://www.zh.ch/de/news-uebersicht/medienmitteilungen/2021/07/bildung-in-zahlen.html
 
-- MeteoSwiss. (n.d.). Precipitation. Federal Office of Meterology and Climatology MeteoSwiss. Retrieved 19 June 2023, from https://www.meteoschweiz.admin.ch/wetter/wetter-und-klima-von-a-bis-z/niederschlag.html
+- MeteoSwiss. (2023). Precipitation. Federal Office of Meterology and Climatology MeteoSwiss. Retrieved 19 June 2023, from https://www.meteoschweiz.admin.ch/wetter/wetter-und-klima-von-a-bis-z/niederschlag.html
 
 - Sathishkumar, Cho, Y., & Jangwoo, Park. (2020). Seoul bike trip duration prediction using data mining techniques. IET Intelligent Transport Systems, 14(11), 1465–1474. https://doi.org/10.1049/iet-its.2019.0796
+
 
