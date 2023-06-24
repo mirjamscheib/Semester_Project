@@ -24,7 +24,7 @@ editor:
 # To Do's im Code
 - Rendern (Miri)
 - Summary tables nötig? bzw. wie am besten darstellen 
-- Table beschriftungen? Nicht gleich wie figure beschriftung? 
+- Table beschriftungen? Nicht gleich wie figure beschriftung? Das geht nicht anders.. das haben sie im Best Practise auch so gemacht
 
 # BACKGROUND AND RESEARCH QUESTIONS
 
@@ -366,7 +366,7 @@ tm_shape(mcp_posmo) +
   tm_fill(col = "dataset", alpha = 0.4, title = "Student") +
   tm_layout(title = "Cartographic Representation of Students travelling with/without Precipitation") +
   tm_shape(mcp_posmo) +
-  tm_borders(col = "red") +
+  tm_borders(col = "aquamarine3") +
   tm_shape(posmo) +
   tm_dots(col = "rain_day", title = "Precipitation") +
   tm_shape(weather) +
