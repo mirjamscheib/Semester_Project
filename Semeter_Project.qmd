@@ -163,6 +163,7 @@ ggplot() +
   theme(axis.text.x=element_blank())
 ```
 
+### Cartographic Representation 
 ```{r, fig.cap = "Figure 4: Cartographic representation of trajectory points from six students compared between weekends and weekdays"}
 #| label: prepro and creation of visual map with convex hull
 
@@ -337,6 +338,7 @@ ggplot() +
   theme(axis.text.x=element_blank())
 ```
 
+### Cartographic Representation 
 ```{r, fig.cap = "Figure 11: Cartographic representation of trajectory points from six students compared between precipitation and no/low precipitation. Additionally, all weather stations used are visualised as black points on the map."}
 #| label: create visual map rain
 
