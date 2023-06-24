@@ -181,7 +181,6 @@ tmap_mode("view")
 # cartographic visualisation 
 tm_shape(mcp_posmo) +
   tm_fill(col = "dataset", alpha = 0.4, title = "Student") +
-  tm_layout(title = "Cartographic Representation of Students travelling on Weekdays vs. Weekends") +
   tm_shape(mcp_posmo) +
   tm_borders(col = "black") +
   tm_shape(posmo) +
@@ -361,7 +360,6 @@ tmap_mode("view")
 # segmented visualisation 
 tm_shape(mcp_posmo) +
   tm_fill(col = "dataset", alpha = 0.4, title = "Student") +
-  tm_layout(title = "Cartographic Representation of Students travelling with/without Precipitation") +
   tm_shape(mcp_posmo) +
   tm_borders(col = "black") +
   tm_shape(posmo) +
