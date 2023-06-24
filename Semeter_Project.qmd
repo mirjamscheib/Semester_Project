@@ -187,7 +187,7 @@ tm_shape(mcp_posmo) +
   tm_fill(col = "dataset", alpha = 0.4, title = "Student") +
   tm_layout(title = "Cartographic Representation of Students travelling on Weekdays vs. Weekends") +
   tm_shape(mcp_posmo) +
-  tm_borders(col = "red") +
+  tm_borders(col = "black") +
   tm_shape(posmo) +
   tm_dots(col = "day_week", title = "Day of the Week")
 ```
@@ -366,7 +366,7 @@ tm_shape(mcp_posmo) +
   tm_fill(col = "dataset", alpha = 0.4, title = "Student") +
   tm_layout(title = "Cartographic Representation of Students travelling with/without Precipitation") +
   tm_shape(mcp_posmo) +
-  tm_borders(col = "aquamarine3") +
+  tm_borders(col = "black") +
   tm_shape(posmo) +
   tm_dots(col = "rain_day", title = "Precipitation") +
   tm_shape(weather) +
