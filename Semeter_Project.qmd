@@ -21,11 +21,6 @@ editor:
     wrap: 72
 ---
 
-# To Do's im Code
-- Rendern (Miri)
-- Summary tables nötig? bzw. wie am besten darstellen 
-- Table beschriftungen? Nicht gleich wie figure beschriftung? Das geht nicht anders.. das haben sie im Best Practise auch so gemacht
-
 # BACKGROUND AND RESEARCH QUESTIONS
 
 It is known that several factors like the weather condition (Brum-Bastos et al., 2018), the day of the week and time of the day (Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal movement patterns of people. There are several study’s investigating movement patterns of people in urban areas with the aim to improve the distribution of facilities and the provisioning of transportation services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu et al., 2020). Nevertheless, most studies do not focus on specific social groups (e.g. workforce, students, pensioners), that might follow distinct spatio-temporal patterns, showing a potential demand for a specific adaption of infrastructure. The canton of Zurich accommodates the most students in Switzerland, with numbers continuing to rise (Bundesamt für Statistik, 2023). Additionally, students and apprentices (from the age of  15 years) make up 39 % of the public transport commuter mass, which is why knowledge of spatio-temporal patterns of students could help to manage train and other public transport infrastructure (Bundesamt für Statistik, 2021). Therefore, we want to investigate the influence of three environmental factors on spatio-temporal movement patterns of students, aiming to answer the following research questions:  
