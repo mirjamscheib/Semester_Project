@@ -87,6 +87,24 @@ posmo <- read_delim("posmo_data/posmo_trips.csv")
 
 ## Impact of the day of the week
 
+```{r}
+#| label: Table summary 1
+question1_summary <- posmo |> 
+  group_by(day_week, transport_mode) |> 
+  summarise(dis_mean = mean(trip_dis, na.rm = T),
+            speed_mean = mean(trip_speed, na.rm = T),
+            dur_mean = mean(trip_duration, na.rm = T)) |> 
+  mutate(perc_dis = dis_mean/sum(dis_mean)*100,
+         perc_speed = speed_mean/sum(speed_mean)*100,
+         perc_dur = dur_mean/sum(dur_mean)*100)
+
+question1_summary
+
+
+# knitr::opts_chunk$set(eval = FALSE)
+```
+Table 1: Overview over the mean speed, distance and duration of travel modes compared between weekdays and weekends, including their share 
+
 ### Spatial Analysis
 
 For each travelmode we found a higher trip distance on weekends compared to weekdays. The trip distances for the travel mode "walk" have a lower mean than for other travel modes. On the other hand, the mean travel distances for "bike" are around the same range as for "car" and "train". 
@@ -240,6 +258,27 @@ ggplot(posmo_day, aes(hour, mean_duration/60, col = day_week)) +
 ```
 
 ## Impact of precipitation
+
+
+```{r}
+#| label: Table Summary 2
+
+#load clean data
+posmo <- read_delim("posmo_data/posmo_trips.csv")
+
+question2_summary <- posmo |> 
+  group_by(rain_day, transport_mode) |> 
+  summarise(dis_mean = mean(trip_dis, na.rm = T),
+            speed_mean = mean(trip_speed, na.rm = T),
+            dur_mean = mean(trip_duration, na.rm = T)) |> 
+  mutate(perc_dis = dis_mean/sum(dis_mean)*100,
+         perc_speed = speed_mean/sum(speed_mean)*100,
+         perc_dur = dur_mean/sum(dur_mean)*100) |>
+  subset(rain_day == "rain")
+
+question2_summary
+```
+Table 2: Overview over the mean speed, distance and duration of travel modes compared between rainy or dry days, including their share 
 
 ### Spatial Analysis
 
