@@ -23,11 +23,12 @@ editor:
 
 # BACKGROUND AND RESEARCH QUESTIONS
 
-It is known that several factors like the weather condition (Brum-Bastos et al., 2018), the day of the week and time of the day (Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal movement patterns of people. There are several study’s investigating movement patterns of people in urban areas with the aim to improve the distribution of facilities and the provisioning of transportation services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu et al., 2020). Nevertheless, most studies do not focus on specific social groups (e.g. workforce, students, pensioners), that might follow distinct spatio-temporal patterns, showing a potential demand for a specific adaption of infrastructure. The canton of Zurich accommodates the most students in Switzerland, with numbers continuing to rise (Bundesamt für Statistik, 2023). Additionally, students and apprentices (from the age of  15 years) make up 39 % of the public transport commuter mass, which is why knowledge of spatio-temporal patterns of students could help to manage train and other public transport infrastructure (Bundesamt für Statistik, 2021). Therefore, we want to investigate the influence of three environmental factors on spatio-temporal movement patterns of students, aiming to answer the following research questions:  
+It is known that several factors like the weather condition (Brum-Bastos et al., 2018; Guo et al., 2022), the day of the week and time of the day (Liu et al., 2020; Sathishkumar et al., 2020) influence spatio-temporal movement patterns of people. There are several study’s investigating movement patterns of people in urban areas with the aim to improve the distribution of facilities and the provisioning of transportation services, as well as to manage traffic peaks (Kyaing et al., 2017; Liu et al., 2020). It was shown that travel behaviour is significantly impacted by age, income and life stage impacting travelling behaviour in different ways (Kattiyapornpong & Miller, 2009). Because people with different socio-demographic variables follow distinct spatio-temporal movement patterns, we investigate the travelling behaviour of 11 students in this project work. The canton of Zurich accommodates the most students in Switzerland, with numbers continuing to rise (Bundesamt für Statistik, 2023; Medienmitteilung Kanton ZH, 2021). Additionally, students and apprentices (from the age of  15 years) make up 39 % of the public transport commuter mass, which is why detailed knowledge of spatio-temporal patterns of students could help to manage public transport infrastructure (Bundesamt für Statistik, 2021). Therefore, we want to investigate the influence of three environmental factors on spatio-temporal movement patterns of students, aiming to answer the following research questions:  
 
-1.	Does the day of the week (weekend vs. workday) have an influence on the spatio-temporal movement patterns of students? 
-2.	Does the time of the day compared between weekend and workday have an influence on the spatio-temporal movement patterns of students? 
-3.	Does precipitation has an impact the spatio-temporal movement patterns of students?
+1.	Does the day of the week (weekend vs. weekday) have an influence on the spatio-temporal movement patterns of students? 
+2.	Does the time of the day compared between weekend and weekday have an influence on the spatio-temporal movement patterns of students? 
+3.	Does intense precipitation has an impact on the spatio-temporal movement patterns of students?
+
 
 
 # DATA & METHODS
@@ -43,22 +44,22 @@ Primary data used in this project work consisted of trajectory data from 11 stud
 -	**transport_mode:** the type of transport used by a user (e.g. car, bicycle, foot, train, other....) (type: character)
 -	**lon_x/lat_y:** coordinates of the user at a specific time (type: numeric)
 
-Additionally, weather data from 84 stations in the canton of Zurich and bordering cantons (SZ, AG, ZG, TG, SG), consisting of measurements every 10 minutes was used to investigate the influence of precipitation on spatio-temporal movement patterns of students. 
+Additionally, precipitation data consisting of measurement every 10 minutes from 84 stations in the canton of Zurich and bordering cantons (SZ, AG, ZG, TG, SG) was used to investigate the influence of precipitation on spatio-temporal movement patterns of students. 
 
 
 ## Pre-processing
 
-For the analysis first we reviewed data consistency by creating a point plot, where every tracking point in time (x-axis) was displayed per user (y-axis). Five users needed to be eliminated due to insufficient tracking point coverage in time. Additionally, the dataset was cut into a specific timeframe (28.04.2023 - 09.05.2023) covering 11 days to ensure sufficient overlap of tracking points between users in time. Additionally, travel modes consisting of “Airplane”, “Funicular” and “Other1” were removed, as they presented either too specific or unspecific travel modes to be of interest in the subsequent analysis. 
-
-Furthermore, all convenience variables needed for the analysis were annotated in our pre-processing steps. First, it was discriminated between weekend (Sa – So) and weekdays (Mo – Fr). Additionally, to discriminate between days with high and low/no precipitation we calculated the nearest weather station for every trajectory point and annotated the precipitation data at the matching time to our dataset. We considered a precipitation of > 20 mm per 24 hours as a rainy day, as MeteoSwiss (n.d.) defines a precipitation from 10 – 30 mm per 24 hours as high intensity precipitation. 
+First we reviewed data consistency by creating a point plot, where every tracking point in time (x-axis) was displayed per user (y-axis). Five users needed to be eliminated due to insufficient tracking point coverage in time. Additionally, the dataset was cut into a specific timeframe (28.04.2023 - 09.05.2023) covering 11 days to ensure sufficient overlap of tracking points between users. Additionally, travel modes consisting of “Airplane”, “Funicular” and “Other1” were removed, as they presented either too specific or unspecific travel modes to be of interest in the subsequent analysis. 
+Furthermore, the annotation of all convenience variables are considered crucial pre-processing steps for the subsequent analysis. First, it was discriminated between weekend (Sa – So) and weekdays (Mo – Fr). Additionally, to discriminate between days with high and low/no precipitation we calculated the nearest weather station for every trajectory point and annotated the precipitation data at the matching time to our dataset. For this we created a new column in the posmo dataset, to create a time join key matching the 10 minutes interval of the weather data. We considered a precipitation of > 20 mm per 24 hours as a day with intense precipitation, as MeteoSwiss (n.d.) defines a precipitation from 10 – 30 mm per 24 hours as high intensity precipitation. 
 
 To investigate spatio-temporal movement patterns of students in concern to environmental variables, we discriminated between static and movement segments and assigned to every moving sequence a segment ID. From this we calculated distance, speed and duration for every segment. 
 
 All pre-processing steps can be accessed in a separate quarto-file (Pre_Processing.qmd) in our github respiratory under the following link: https://github.com/mirjamscheib/Semester_Project.git
 
+
 ## Analysis
 
-The analysis of the research questions was carried out by creating summary tables and boxplots to investigate distance, speed and duration of different travel modes comparing weekends with weekdays and precipitation with no precipitation. Additionally, line plots visualising distance, speed and duration per hour of the day comparing weekends with weekdays were carried out. Cartographic maps visualising trajectory points of students comparing weekends with weekdays and precipitation and no precipitation complement the analysis. 
+The analysis of the research questions was carried out by creating summary tables and boxplots to investigate distance, speed and duration of different travel modes comparing weekends with weekdays and high precipitation with no precipitation. Additionally, line plots visualising distance, speed and duration per hour of the day comparing weekends with weekdays were carried out. Cartographic maps visualising trajectory points of students comparing weekends with weekdays and precipitation and no precipitation complement the analysis. 
 
 ```{r}
 #| label: load packages and clean data
@@ -89,7 +90,7 @@ posmo <- read_delim("posmo_data/posmo_trips.csv")
 
 ### Spatial Analysis
 
-For each travelmode we found a higher trip distance on weekends compared to weekdays. The trip distances for the travel mode "walk" have a lower mean than for other travel modes. On the other hand, the mean travel distances for "bike" are around the same range as for "car" and "train". 
+A higher trip distance resulted for every travel mode on weekends compared to weekdays. Generally, the distance travelled by foot (tavel mode: Walk) had a lower mean than other travel modes. On the contrary it is shown, that the mean distance travelled by bike is around the same range a the travel modes car and train. 
 ```{r, fig.cap = "Figure 1: Trip distance per transport mode compared between weekends and weekdays, the trip distance is logarythmised"}
 #| label: Boxplot comparing trip distance between weekend and weekday of travelmodes
 
@@ -104,7 +105,7 @@ For each travelmode we found a higher trip distance on weekends compared to week
   theme(axis.text.x=element_blank())
 ```
 
-For trip speed, the results are not as clear as for trip distance, but there is a tendency of trip speed being higher on the weekends, than during the week. Again we find the mean trip speed of "bike" being in a similar range as "car" and "train", whereas "bus" conforms to "horse".
+The resulting trip speeds per transport mode compared between weekends and weekdays show a heterogeneous distribution with no clear trend. However, there is a tendency of trip speed being higher on the weekends, than during the week. Again we find the mean trip speed by bike being in a similar range as when students travelled by car and train, whereas the travel mode bus conforms to when students travelled by horse.
 
 ```{r, fig.cap = "Figure 2: Trip speed per transport mode compared between weekends and weekdays, the trip speed is logarythmised"}
 #| label: Boxplot comparing trip speed between weekend and weekday of travelmodes
@@ -122,7 +123,7 @@ ggplot(posmo, aes(day_week, log(trip_speed), fill = day_week)) +
 
 ### Temporal Analysis
 
-We could not find a clear result concerning trip duration between weekends and weekdays. The only tendency that can be seen, is that the mean trip duration of "walk" is lower than for all the other travel modes.
+The trip duration showed a no clear trend, as the mean trip duration is similar between weekends and weekdays for every travel mode considered. There is however a tendency, that the mean trip duration is lower when students are travelling by foot compared to all other travel modes. 
 
 ```{r, fig.cap = "Figure 3: Trip duration per transport mode compared between weekends and weekdays, the trip duration is logarythmised"}
 
@@ -192,7 +193,7 @@ posmo_day <- posmo_round |>
 
 ### Spatial Analysis
 
-The result for the trip distances per hour and weekday encourages the previous result of trip distance per travel mode, as both results show higher trip distances on the weekends compared to on weekdays. Otherwise the results do not show clear patterns. Maybe a slight decrease of the trip distances towards the end of the day. 
+The trip distance per hour shows similar to the previous boxplot comparing travelled distance per transport mode a higher trip distance on the weekends compared to weekdays. After a peak of travelled distance at around 7 AM on the weekend, a decreasing trend of distance per hour is shown, with regular peaks (10 AM, 1 PM, 5 PM, 9 PM). The trip distance per hour during the week shows a rather homogenous pattern with regular peaks during the day (5 AM, 7 AM, 9 AM, 1 PM, 5 PM, 8 PM) with the highest peaks at around 1 PM, 5 PM and 8 PM. 
 ```{r, fig.cap = "Figure 5: Mean trip distance for every hour of the day compared between weekdays and weekends"}
 
 #| label: Mean trip distance per hour of the day compared between weekend/weekday
@@ -207,7 +208,7 @@ ggplot(posmo_day, aes(hour, mean_dis, col = day_week)) +
   theme_minimal()
 ```
 
-The pattern of a decreasing travel speed on the weekend towards the end of the day gets clearer in this result. Also, we found a higher trip speeds for weekends compared to on weekdays. 
+The trip speed shows a decreasing trend of travel speed from around 4 AM to 11 PM on the weekend days. Additionally, trip speed per hour mostly is higher for weekends compared to weekdays. During weekdays the trip speed per hour is relatively stable with two peaks at around 5 PM and 8 PM. 
 
 ```{r, fig.cap = "Figure 6: Mean trip speed for every hour of the day compared between weekdays and weekends"}
 #| label: Mean trip speed per hour of the day compared between weekend/weekday
@@ -224,7 +225,7 @@ ggplot(posmo_day, aes(hour, mean_speed, col = day_week)) +
 
 ### Temproal Analysis
 
-The trip duration seems to rise slightly on both weekends and weekdays towards the end of the day. Otherwise we could not detect any pattern in this result. 
+The trip duration reaches its peak at around 4 AM on the weekends, while on the weekdays at around 8 PM the duration of trips was the highest. Additionally, between 3 and 5 PM trip duration is considerably higher than average during the weekend days, while at around 8 AM and 5 PM trip duration during the week is higher compared to other hours of the day. 
 
 ```{r, fig.cap = "Figure 7: Mean trip duration for every hour of the day compared between weekdays and weekends"}
 #| label: Mean trip duration per hour of the day compared between weekend/weekday
@@ -260,7 +261,7 @@ ggplot() +
   theme(axis.text.x=element_blank())
 ```
 
-Speed at high precipitation is lower when travelling by bike, foot, bus and car, while for travel modes such as train and tram speed was higher. Travelling by horse was effected insignificantly by precipitation. Although, travel speeds are impacted by precipitation, the effect is only marginal. 
+Speed at high precipitation is lower when travelling by bike, foot, bus and car, while for travel modes such as train and tram speed was higher. Travelling by horse was effected insignificantly by precipitation. Although, travel speeds are impacted by precipitation, the effect is only marginal.  
 ```{r, fig.cap = "Figure 9: Mean trip speed compared between precipiation and no/low precipitaion, where the trip speed is logarythmised"}
 #| label: mean trip speed depending on precipitation
 
@@ -332,38 +333,30 @@ tm_shape(mcp_posmo) +
 
 # DISCUSSION 
 
-It is to be noted, that we investigated spatio-temporal movement patterns of students, which cannot be generalized, as it was shown that sociodemographics and travel behavior of university students differ from the general population and between students living on or off campus, as well as students attending urban or suburban campuses (Khattak et al., 2011). Travel behaviour is significantly impacted by age, income and life stage and these socio-demographic variables act in different ways to constrain or free types of travel behaviour (Kattiyapornpong & Miller, 2009). 
+It is to be noted, that the investigated spatio-temporal movement patterns of students cannot be generalized for the general population, as it was shown that sociodemographics and travel behaviour of university students differ from the general population, as well as between students living on or off campus and students attending urban or suburban campuses (Khattak et al., 2011). Furthermore, conclusions that can be drawn by investigating our three environmental factor individually are limited, as these factors interact with each other and several additional factors lead to differences of time expenditure on different travel modes such as for example temperature and gender (Brum-Bastos et al., 2018). Multi-channel  sequence  analysis (MCSA) are therefore particularly relevant to study human mobility as they are able to simultaneously consider multiple environmental variables (Brum-Bastos et al., 2018).
 
-In the course of this project it became clear, that the Posmo App comes with severe uncertainties and tracking errors. Quantifying those uncertainties would be subject to another semester project in itself, which is why we assumed that the data we used was correct. 
-
-
-
+Additionally, during the course of this project it became clear, that the Posmo App comes with severe uncertainties and tracking errors. Quantifying those uncertainties would be subject to another semester project in itself, which is why we assumed that the data we used was correct. 
 
 ## Patterns of the day of the week
-We found a clear pattern through all travel modes, where the trip distance is higher on weekends compared to weekdays. The same pattern can also be seen for speed, where only for the travel mode train the speed was higher during weekdays than on weekends. The trend can still be seen but cannot be indicated significant for the trip duration, where three (horse, train, walk) of seven travel modes show an opposite pattern. Interestingly, Sathishkumar et al. (2020) found the same pattern very clearly for bike, where most bike trips during the week took around 24 minutes compared to 30 minutes on the weekends. In our results, bike moves along with the pattern as well, which suggests that it might depend on the travel mode, whether the trip duration is longer or shorter on the weekends compared to weekdays.
+The day of the week impacted spatio-temporal movement patterns of students in a marginal way, indicating no clear trend, where movement activity generally is slightly higher on the weekends than during the weekdays. 
 
-Since trip distance, duration and speed are interconnected parameters and the pattern is clear for trip distance and gets weaker for speed and further decreases for trip duration, another reason could be our imbalanced dataset. We had to cut our datasets in time, to attain seamless data over all days, from all individual participants. Therefore, we ended up with groups for weekday and weekend, with 7 days of data for weekdays and only 4 days for weekends. This bias might have influenced out results intensely. For further studies we therefore suggest a larger number of participants and a longer period of GPS-tracking, to achieve balanced data. 
+Looking at the use of bikes Sathishkumar et al. (2020) found, that most bike trips during the week took around 24 minutes compared to 30 minutes on the weekends, which aligns with our results, where bike trip duration was slightly higher on weekends. Additionally, the use of public transport during the weekdays are only slightly higher in distance, speed and sometimes lower in duration, which could indicate, that other factors than only the weekday impact the spatio-temporal movement of students over different travel modes. In line with this Brum-Bastos et al. (2018) found, that rain during the weekend has no  key  role  on  travel  modes,  but  heavy  rain  decreases  the  use  of  public  transport  during  the  week. Precipitation was a factor influencing 8 of 11 investigated days. 
 
+Since trip distance, duration and speed are interconnected parameters and the pattern is clear for trip distance and gets weaker for speed and further decreases for trip duration, a reason could be our imbalanced dataset. As we had to cut our datasets in time, to attain seamless data over all days, from all individual participants, we ended up with 7 days of the data for weekdays and only 4 days for weekends. This bias potentially has impacted our results. For further studies we therefore suggest a larger number of participants and a longer period of GPS-tracking, to achieve a more balanced dataset. 
 
 ## Patterns of the time of the day
-The impact of the time of the day seems to be similar to the day of the week. We found overall higher trip distances for the weekend, but this pattern is less pronounced for the trip speed and is lost for the trip duration. Also, we found a decrease of the trip distance and the trip speed with progressive time during the day. Again, this pattern cannot be seen for the trip duration. 
+The time of the day impacted spatio-temporal movement patterns of students compared between weekend and weekdays, where generally higher movement activity per hour could be observed during weekends. Additionally, spatio-temporal movement during the week was more balanced, with lower peaks of distance, speed and duration during the day. In contrast to this on the weekends high peaks of distance, speed and duration of trips were found early in the morning with a general trend to decrease during the day, often times with regular peaks at several hours. 
 
-Comparing our results to literature, the pattern Sathishkumar et al. (2020) found for bike (weekend and weekday mixed) looks similar to the pattern we found for weekend, where there is the shortest trip duration around 8.00 and the trips are the longest in the afternoon and evening. In our eyes, it is hard to explain this pattern, when weekend and weekday are not split up and their explanation for their pattern applies to South Korea, which might have a different work/study culture than Switzerland has. Our explanation for the weekend pattern would be, that the trip duration is longer after noon until late evening, as students might sleep in and start and end their day later than during the week. This fits with the pattern during the week, where we have two trip duration peaks during communing time and a small one just before lunch, that can be explained by students only having courses in the morning and travelling home before lunch. The last peak at 20:00 can be explained by leisure activities in the evening, that end earlier than on the weekends. 
+Comparing our results to literature, the movement pattern Sathishkumar et al. (2020) found considering only the travel mode bike stays in contrast to our results found for the weekend, where there is the shortest trip duration around 8 AM and the trips are the longest in the afternoon and evening. However, in their study there was no distinction between weekend and weekday, as well as only one travel mode was investigated, making the comparison to our results difficult. Ryan et al. (2010) and Brum-Bastos et al. (2018) found more varied activities on weekends, which aligns with our findings of generally more peaks and higher movement activity during the day on the weekends, which they explain by having more scope for freedom of action on weekends compared to external controls during the week. When looking at movement activity during the day, it was shown that daylight impact movement behaviour of humans, where less daylight results in less time walking, time spend on public transport and more vehicular use during the weekdays. On weekends this trend reverses, where walking and public transport become more prominent to more night hours, while vehicle use is more prominent during daylight hours (Brum-Bastos et al., 2018). Additionally, more time at home and less time shopping or socialising is spend during night hours during the week while again, this relationship reverses on the weekends (Brum-Bastos et al., 2018), which fits with our observations, of a high peak of movement activity during 3 to 6 AM on the weekends, as well as more and higher peaks of movement activity on the weekends. During the weekdays the patterns of distance, speed and duration were found to be more homogenous with lower peaks, fitting the expectation that during typical commuting times (around 6 – 8 AM and 3 – 6 PM) spatio-temporal movement behaviour increases in activity. An additional peak for distance, speed and duration at around 8 PM during the weekdays could be explained by leisure activities in the evening. 
 
 
 ## Precipiation Patterns 
 
-Precipitation impacted spatio-temporal movement patterns of students only in a marginal way, indicating no significant relationship between precipitation and movement patterns concerning several travel modes. 
-However, although only insignificant effects could be shown, some patterns were emerging as the movement (distance, speed and duration) of students was reduced under heavy rain when travelling by bike, bus and car, while it was increased when travelling by train and tram. This results are in contrast to Brum-Bastos et al. (2018), where they found a general trend of more vehicular use under heavy rain, while in our study we found e general decrease in the use of cars.  
+Precipitation impacted spatio-temporal movement patterns of students only in a marginal way, indicating no clear relationship between precipitation and movement patterns concerning several travel modes. However, although only insignificant effects could be shown, some patterns were emerging as the movement (distance, speed, and duration) of students was reduced under heavy rain when travelling by bike, bus and car, while it was increased when travelling by train and tram. This results are in contrast to Brum-Bastos et al. (2018), where they found a general trend of more vehicular use under heavy rain, while in our study we found a general decrease in the use of cars. 
 
-By foot it could only be shown that speed and distance were lower under heavy rain, while the duration was not impacted by precipitation patterns. In contrast to our finding, Brum-Bastos et al. (2018) found an overall decrease in walking during rain. The travel mode by horse showed no response in movement to precipitation. 
+By foot it could be shown that speed and distance were lower under heavy rain, while the duration was not impacted by precipitation patterns. In contrast to our finding, Brum-Bastos et al. (2018) found an overall decrease in walking during rain. It was shown, that when travel destinations are obligatory (e.g., work, lectures) people change their travel mode more likely under heavy rain, meaning that they drive to work instead of walk. However, if destinations are linked to leisure activities, people more likely just postpone the task instead of changing their travel mode (Connolly, 2008). Additionally, during the week a decrease in public transport was observed under heavy rain by Brum-Bastos et al. (2018). This finding are in contrast to our results, where the use of some public transport means (train and tram) was increased under heavy rain, although we did not include the consideration of the days of the week. 
 
-It was shown, that when travel destinations are obligatory (e.g., work, lectures) people change their travel mode more likely under heavy rain, meaning that they drive to work instead of walk. However, if destinations are linked to leisure activities, people more likely just postpone the task instead of changing their travel mode (Connolly, 2008).
-
-Additionally, during the week a decrease in public transport was observed under heavy rain by Brum-Bastos et al. (2018). This finding are in contrast to our results, where the use of some public transport means (train and tram) was increased under heavy rain, although we did not include the consideration of the days of the week. 
-
-However, it is to be said, that those marginal patterns found in our data is not indicative, as we only had a sample size of 5 students and investigated 11 days, from which 8 days were considered having heavy rainfall. Additionally, the results need to be interpreted with caution, as in fig. 11 it is shown, that for some trajectory points weather stations are rather far away to serve as indication for precipitation. 
-
+However, it is to be said, that those marginal patterns found in our data is not indicative, as we only had a sample size of 5 students and investigated 11 days, from which 8 days were considered having heavy rainfall. Additionally, the results need to be interpreted with caution, as in figure 11 it is shown, that for some trajectory points weather stations are rather far away to serve as an indication for precipitation. 
 
 
 # SOURCES
@@ -395,8 +388,8 @@ However, it is to be said, that those marginal patterns found in our data is not
 
 - Medienmitteilung Kanton ZH. (2021). Bildung in Zahlen. Kanton Zürich. https://www.zh.ch/de/news-uebersicht/medienmitteilungen/2021/07/bildung-in-zahlen.html
 
-- MeteoSwiss. (2023). Precipitation. Federal Office of Meterology and Climatology MeteoSwiss. Retrieved 19 June 2023, from https://www.meteoschweiz.admin.ch/wetter/wetter-und-klima-von-a-bis-z/niederschlag.html
+- MeteoSwiss. (n.d.). Precipitation. Federal Office of Meterology and Climatology MeteoSwiss. Retrieved 19 June 2023, from https://www.meteoschweiz.admin.ch/wetter/wetter-und-klima-von-a-bis-z/niederschlag.html
+
+- Ryan, R. M., Bernstein, J. H., & Brown, K. W. (2010). Weekends, Work, and Well-Being: Psychological Need Satisfactions and Day of the Week Effects on Mood, Vitality, and Physical Symptoms. Journal of Social and Clinical Psychology, 29(1), 95–122. https://doi.org/10.1521/jscp.2010.29.1.95
 
 - Sathishkumar, Cho, Y., & Jangwoo, Park. (2020). Seoul bike trip duration prediction using data mining techniques. IET Intelligent Transport Systems, 14(11), 1465–1474. https://doi.org/10.1049/iet-its.2019.0796
-
-
