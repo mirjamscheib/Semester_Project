@@ -81,7 +81,7 @@ precipitation on spatio-temporal movement patterns of students.
 
 ## Pre-processing
 
-First we reviewed data consistency by creating a point plot, where every
+First, we reviewed data consistency by creating a point plot, where every
 tracking point in time (x-axis) was displayed per user (y-axis). Five
 students needed to be eliminated due to insufficient tracking point
 coverage in time (Fig. 1). Additionally, the dataset was cut into a
